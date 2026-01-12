@@ -1,77 +1,106 @@
 .topbar {
-    height: 70px;
-    background: var(--color-white);
-    border-bottom: 1px solid var(--color-gray-200);
+    height: 80px;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 var(--spacing-xl);
+    padding: 0 32px;
     position: sticky;
     top: 0;
     z-index: 50;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .topbar-left {
-    flex: 1;
+    flex: 0 0 auto;
 }
 
 .topbar-title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--color-primary);
+    color: #512F02;
     margin: 0;
 }
 
+.topbar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 0 32px;
+}
+
+.topbar-search {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 16px 10px 44px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #374151;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #512F02;
+    box-shadow: 0 0 0 3px rgba(81, 47, 2, 0.1);
+}
+
+.search-input::placeholder {
+    color: #9ca3af;
+}
+
 .topbar-right {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: var(--spacing-lg);
-}
-
-.topbar-season {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: 0.5rem 1rem;
-    background: var(--color-secondary);
-    border-radius: var(--radius-md);
-    color: var(--color-white);
-    font-size: 0.875rem;
-}
-
-.season-label {
-    font-weight: 500;
-}
-
-.season-value {
-    font-weight: 700;
+    gap: 16px;
 }
 
 .topbar-user {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: 12px;
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: var(--color-primary);
-    color: var(--color-white);
+    background: #f3f4f6;
+    color: #512F02;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 1.125rem;
+    font-weight: 600;
+    font-size: 1rem;
+    overflow: hidden;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .user-name {
-    font-weight: 500;
-    color: var(--color-gray-700);
-}
-
-.topbar-logout {
-    font-size: 0.875rem;
+    font-weight: 600;
+    color: #512F02;
+    font-size: 0.95rem;
 }
