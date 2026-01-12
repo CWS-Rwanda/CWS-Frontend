@@ -281,15 +281,21 @@ const AdminDashboard = () => {
                                                         const svg = e.currentTarget.closest('svg');
                                                         const svgRect = svg.getBoundingClientRect();
                                                         const svgViewBox = svg.viewBox.baseVal;
-                                                        const scaleX = containerRect.width / svgViewBox.width;
-                                                        const scaleY = containerRect.height / svgViewBox.height;
+                                                        const scaleX = svgRect.width / svgViewBox.width;
+                                                        const scaleY = svgRect.height / svgViewBox.height;
+                                                        const offsetX = svgRect.left - containerRect.left;
+                                                        const offsetY = svgRect.top - containerRect.top;
                                                         setHoveredPoint({
                                                             revenue: point.revenue,
                                                             date: point.date
                                                         });
+                                                        let x = offsetX + (point.x * scaleX);
+                                                        let y = offsetY + (point.y * scaleY);
+                                                        x = Math.max(10, Math.min(containerRect.width - 10, x));
+                                                        y = Math.max(40, Math.min(containerRect.height - 10, y));
                                                         setTooltipPosition({
-                                                            x: (point.x - 50) * scaleX + 50,
-                                                            y: point.y * scaleY - 30
+                                                            x,
+                                                            y
                                                         });
                                                     }}
                                                     onMouseLeave={() => setHoveredPoint(null)}
@@ -311,21 +317,21 @@ const AdminDashboard = () => {
                             <div className="y-axis-label">Sales/RWF</div>
                             <div className="x-axis-label">Month</div>
                         </div>
-                    </div>
-                    {hoveredPoint && (
-                        <div
-                            className="chart-tooltip"
-                            style={{
-                                left: `${tooltipPosition.x}px`,
-                                top: `${tooltipPosition.y}px`,
-                            }}
-                        >
-                            <div className="tooltip-content">
-                                <div className="tooltip-date">{new Date(hoveredPoint.date).toLocaleDateString()}</div>
-                                <div className="tooltip-value">{hoveredPoint.revenue.toLocaleString()} RWF</div>
+                        {hoveredPoint && (
+                            <div
+                                className="chart-tooltip"
+                                style={{
+                                    left: `${tooltipPosition.x}px`,
+                                    top: `${tooltipPosition.y}px`,
+                                }}
+                            >
+                                <div className="tooltip-content">
+                                    <div className="tooltip-date">{new Date(hoveredPoint.date).toLocaleDateString()}</div>
+                                    <div className="tooltip-value">{hoveredPoint.revenue.toLocaleString()} RWF</div>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
