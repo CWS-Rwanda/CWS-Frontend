@@ -1,9 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useData } from '../../context/DataContext';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
     const { deliveries, lots, revenue, expenses, laborCosts } = useData();
+    const [hoveredPoint, setHoveredPoint] = useState(null);
+    const [hoveredPie, setHoveredPie] = useState(null);
+    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+    const [pieTooltipPosition, setPieTooltipPosition] = useState({ x: 0, y: 0 });
 
     // Calculate KPIs
     const totalRevenue = useMemo(() => {
@@ -68,7 +72,7 @@ const AdminDashboard = () => {
                     <div className="kpi-content">
                         <div className="kpi-label">Revenue</div>
                         <div className="kpi-value">{totalRevenue.toLocaleString()} RWF</div>
-                    </div>
+            </div>
                 </div>
 
                 <div className="kpi-card profit-card">
@@ -80,7 +84,7 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+                </div>
 
             <div className="dashboard-charts">
                 <div className="chart-card">
@@ -107,6 +111,7 @@ const AdminDashboard = () => {
                                         `Z`,
                                     ].join(' ');
                                     
+                                    const segmentAngle = currentAngle + angle / 2;
                                     currentAngle += angle;
                                     
                                     return (
@@ -116,10 +121,29 @@ const AdminDashboard = () => {
                                                 fill={color}
                                                 stroke="white"
                                                 strokeWidth="2"
+                                                style={{ cursor: 'pointer' }}
+                                                onMouseEnter={(e) => {
+                                                    const container = e.currentTarget.closest('.pie-chart-container');
+                                                    const containerRect = container.getBoundingClientRect();
+                                                    const tooltipAngle = segmentAngle * Math.PI / 180;
+                                                    const radius = 70;
+                                                    const tooltipX = 100 + radius * Math.cos(tooltipAngle);
+                                                    const tooltipY = 100 + radius * Math.sin(tooltipAngle);
+                                                    setHoveredPie({
+                                                        type: item.type,
+                                                        count: item.count,
+                                                        percentage: item.percentage
+                                                    });
+                                                    setPieTooltipPosition({
+                                                        x: (tooltipX / 200) * containerRect.width,
+                                                        y: (tooltipY / 200) * containerRect.height
+                                                    });
+                                                }}
+                                                onMouseLeave={() => setHoveredPie(null)}
                                             />
                                             <text
-                                                x={100 + 50 * Math.cos(((currentAngle - angle / 2) * Math.PI) / 180)}
-                                                y={100 + 50 * Math.sin(((currentAngle - angle / 2) * Math.PI) / 180)}
+                                                x={100 + 50 * Math.cos((segmentAngle * Math.PI) / 180)}
+                                                y={100 + 50 * Math.sin((segmentAngle * Math.PI) / 180)}
                                                 textAnchor="middle"
                                                 fontSize="12"
                                                 fill="white"
@@ -132,6 +156,21 @@ const AdminDashboard = () => {
                                 });
                             })()}
                         </svg>
+                        {hoveredPie && (
+                            <div
+                                className="chart-tooltip pie-tooltip"
+                                style={{
+                                    left: `${pieTooltipPosition.x}px`,
+                                    top: `${pieTooltipPosition.y}px`,
+                                }}
+                            >
+                                <div className="tooltip-content">
+                                    <div className="tooltip-label">{hoveredPie.type}</div>
+                                    <div className="tooltip-value">Count: {hoveredPie.count}</div>
+                                    <div className="tooltip-value">{hoveredPie.percentage.toFixed(1)}%</div>
+                                </div>
+                            </div>
+                        )}
                         <div className="pie-legend">
                             {deliveryData.map((item, index) => {
                                 const colors = ['#FF6B6B', '#9B59B6', '#3498DB'];
@@ -205,7 +244,7 @@ const AdminDashboard = () => {
                                     const x = 50 + (index * 55);
                                     const baseY = 190 - (item.revenue / maxRevenue) * 160;
                                     const y = baseY + (lineIndex * 20) - (line.offset * 40) + Math.sin(index) * 10;
-                                    return { x, y };
+                                    return { x, y, revenue: item.revenue, date: item.date };
                                 });
                                 
                                 const pathData = points
@@ -228,6 +267,42 @@ const AdminDashboard = () => {
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                         />
+                                        {points.map((point, pointIndex) => (
+                                            <g key={pointIndex}>
+                                                <circle
+                                                    cx={point.x}
+                                                    cy={point.y}
+                                                    r="6"
+                                                    fill={line.color}
+                                                    style={{ cursor: 'pointer' }}
+                                                    onMouseEnter={(e) => {
+                                                        const container = e.currentTarget.closest('.line-chart-container');
+                                                        const containerRect = container.getBoundingClientRect();
+                                                        const svg = e.currentTarget.closest('svg');
+                                                        const svgRect = svg.getBoundingClientRect();
+                                                        const svgViewBox = svg.viewBox.baseVal;
+                                                        const scaleX = containerRect.width / svgViewBox.width;
+                                                        const scaleY = containerRect.height / svgViewBox.height;
+                                                        setHoveredPoint({
+                                                            revenue: point.revenue,
+                                                            date: point.date
+                                                        });
+                                                        setTooltipPosition({
+                                                            x: (point.x - 50) * scaleX + 50,
+                                                            y: point.y * scaleY - 30
+                                                        });
+                                                    }}
+                                                    onMouseLeave={() => setHoveredPoint(null)}
+                                                />
+                                                <circle
+                                                    cx={point.x}
+                                                    cy={point.y}
+                                                    r="4"
+                                                    fill="white"
+                                                    style={{ pointerEvents: 'none' }}
+                                                />
+                                            </g>
+                                        ))}
                                     </g>
                                 );
                             })}
@@ -237,6 +312,20 @@ const AdminDashboard = () => {
                             <div className="x-axis-label">Month</div>
                         </div>
                     </div>
+                    {hoveredPoint && (
+                        <div
+                            className="chart-tooltip"
+                            style={{
+                                left: `${tooltipPosition.x}px`,
+                                top: `${tooltipPosition.y}px`,
+                            }}
+                        >
+                            <div className="tooltip-content">
+                                <div className="tooltip-date">{new Date(hoveredPoint.date).toLocaleDateString()}</div>
+                                <div className="tooltip-value">{hoveredPoint.revenue.toLocaleString()} RWF</div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -270,25 +359,25 @@ const AdminDashboard = () => {
                                 };
                                 
                                 return (
-                                    <tr key={lot.id}>
-                                        <td><strong>{lot.id}</strong></td>
-                                        <td>{lot.createdDate}</td>
-                                        <td>
+                                <tr key={lot.id}>
+                                    <td><strong>{lot.id}</strong></td>
+                                    <td>{lot.createdDate}</td>
+                                    <td>
                                             <span className={`badge ${getProcessColor(lot.processingMethod)}`}>
                                                 {lot.processingMethod}
                                             </span>
                                         </td>
                                         <td>
                                             <span className="badge badge-grade">Grade {lot.grade}</span>
-                                        </td>
-                                        <td>
+                                    </td>
+                                    <td>
                                             <span className={`badge ${getStatusColor(lot.status)}`}>
-                                                {lot.status}
-                                            </span>
-                                        </td>
-                                        <td>{lot.totalWeight}</td>
-                                        <td>{lot.qualityScore}%</td>
-                                    </tr>
+                                            {lot.status}
+                                        </span>
+                                    </td>
+                                    <td>{lot.totalWeight}</td>
+                                    <td>{lot.qualityScore}%</td>
+                                </tr>
                                 );
                             })}
                         </tbody>
