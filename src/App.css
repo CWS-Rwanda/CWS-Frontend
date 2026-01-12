@@ -14,7 +14,7 @@
   flex: 1;
   padding: var(--spacing-xl);
   background: var(--color-gray-50);
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 80px);
 }
 
 .loading-screen {
