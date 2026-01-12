@@ -1,0 +1,77 @@
+.topbar {
+    height: 70px;
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-xl);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: var(--shadow-sm);
+}
+
+.topbar-left {
+    flex: 1;
+}
+
+.topbar-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 0;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.topbar-season {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0.5rem 1rem;
+    background: var(--color-secondary);
+    border-radius: var(--radius-md);
+    color: var(--color-white);
+    font-size: 0.875rem;
+}
+
+.season-label {
+    font-weight: 500;
+}
+
+.season-value {
+    font-weight: 700;
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.user-name {
+    font-weight: 500;
+    color: var(--color-gray-700);
+}
+
+.topbar-logout {
+    font-size: 0.875rem;
+}
