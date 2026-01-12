@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import AdminImage from '../../assets/Admin-Image.jpg';
 import './TopBar.css';
 
 const TopBar = () => {
@@ -37,13 +38,17 @@ const TopBar = () => {
             <div className="topbar-right">
                 <div className="topbar-user">
                     <div className="user-avatar">
-                        {user?.avatar ? (
+                        {user?.role === 'admin' ? (
+                            <img src={AdminImage} alt="Rukundo Furaha Divin" />
+                        ) : user?.avatar ? (
                             <img src={user.avatar} alt={user?.name} />
                         ) : (
                             <span>{user?.name?.charAt(0) || 'U'}</span>
                         )}
                     </div>
-                    <span className="user-name">{user?.name || 'User'}</span>
+                    <span className="user-name">
+                        {user?.role === 'admin' ? 'Rukundo Furaha Divin' : (user?.name || 'User')}
+                    </span>
                 </div>
             </div>
         </header>
