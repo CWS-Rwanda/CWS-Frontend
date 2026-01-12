@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
+import Modal from '../../components/common/Modal';
+import './FarmerRegistry.css';
 
 const FarmerRegistry = () => {
     const { farmers, deliveries } = useData();
-    const [search, setSearch] = useState('');
     const [selectedFarmer, setSelectedFarmer] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const filteredFarmers = farmers.filter(f =>
-        f.name.toLowerCase().includes(search.toLowerCase()) ||
-        f.id.toLowerCase().includes(search.toLowerCase())
-    );
+    // Mock calculations or static values from design, but using real data where possible
+    const totalFarmers = 300; // Static from design
+    const deliveryIncrease = "7%"; // Static from design
 
     const getFarmerDeliveries = (farmerId) => {
         return deliveries.filter(d => d.farmerId === farmerId);
@@ -20,65 +21,73 @@ const FarmerRegistry = () => {
         return {
             totalDeliveries: farmerDeliveries.length,
             totalWeight: farmerDeliveries.reduce((sum, d) => sum + d.weight, 0),
-            totalAmount: farmerDeliveries.reduce((sum, d) => sum + d.totalAmount, 0),
         };
     };
 
+    const handleViewDetails = (farmer) => {
+        setSelectedFarmer(farmer);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedFarmer(null);
+    };
+
     return (
-        <div>
+        <div className="farmer-registry">
             <div className="page-header">
                 <h1 className="page-title">Farmer Registry</h1>
-                <p className="page-description">Complete farmer database and history</p>
+                <p className="page-description">Complete farmer details</p>
             </div>
 
-            <div className="content-card" style={{ marginBottom: 'var(--spacing-md)' }}>
-                <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Search by name or ID..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
+            <div className="stats-grid">
+                <div className="stat-card">
+                    <div className="stat-indicator indicator-brown"></div>
+                    <div className="stat-content">
+                        <span className="stat-label">Total Farmers</span>
+                        <h3 className="stat-value text-brown">{totalFarmers}</h3>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-indicator indicator-green"></div>
+                    <div className="stat-content">
+                        <span className="stat-label">Delivery increase this season</span>
+                        <h3 className="stat-value text-green">{deliveryIncrease}</h3>
+                    </div>
+                </div>
             </div>
 
             <div className="content-card">
+                <h2 className="section-title">All Farmers</h2>
                 <div className="table-container">
-                    <table className="table">
+                    <table className="farmers-table">
                         <thead>
                             <tr>
-                                <th>Farmer ID</th>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Location</th>
-                                <th>Farm Type</th>
-                                <th>Total Deliveries</th>
-                                <th>Total Weight (kg)</th>
-                                <th>Actions</th>
+                                <th>NAME</th>
+                                <th>PHONE NUMBER</th>
+                                <th>LOCATION</th>
+                                <th>TOTAL DELIVERIES</th>
+                                <th>TOTAL WEIGHT (KG)</th>
+                                <th>ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredFarmers.map(farmer => {
+                            {farmers.map(farmer => {
                                 const totals = getFarmerTotals(farmer.id);
                                 return (
                                     <tr key={farmer.id}>
-                                        <td><strong>{farmer.id}</strong></td>
-                                        <td><strong>{farmer.name}</strong></td>
+                                        <td className="farmer-name">{farmer.name}</td>
                                         <td>{farmer.phone}</td>
-                                        <td>{farmer.sector}, {farmer.cell}</td>
-                                        <td>
-                                            <span className={`badge ${farmer.farmType === 'nucleus' ? 'badge-info' : 'badge-success'}`}>
-                                                {farmer.farmType}
-                                            </span>
-                                        </td>
+                                        <td>{farmer.sector || 'N/A'}</td>
                                         <td>{totals.totalDeliveries}</td>
-                                        <td>{totals.totalWeight.toLocaleString()}</td>
+                                        <td>{totals.totalWeight}</td>
                                         <td>
                                             <button
-                                                onClick={() => setSelectedFarmer(farmer)}
-                                                className="btn btn-outline"
-                                                style={{ fontSize: '0.75rem', padding: '0.375rem 0.75rem' }}
+                                                className="btn-view-details"
+                                                onClick={() => handleViewDetails(farmer)}
                                             >
-                                                View Details
+                                                View details
                                             </button>
                                         </td>
                                     </tr>
@@ -89,54 +98,76 @@ const FarmerRegistry = () => {
                 </div>
             </div>
 
-            {selectedFarmer && (
-                <div className="content-card" style={{ marginTop: 'var(--spacing-xl)' }}>
-                    <div className="card-header">
-                        <h2 className="card-title">Farmer Details: {selectedFarmer.name}</h2>
-                        <button onClick={() => setSelectedFarmer(null)} className="btn btn-outline">
-                            Close
-                        </button>
-                    </div>
+            <Modal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                title={selectedFarmer ? `Farmer Details: ${selectedFarmer.name}` : 'Details'}
+                size="large"
+            >
+                {selectedFarmer && (
+                    <div className="farmer-details-modal">
+                        <div className="details-grid">
+                            <div className="detail-item">
+                                <label>Farmer ID</label>
+                                <p>{selectedFarmer.id}</p>
+                            </div>
+                            <div className="detail-item">
+                                <label>Phone</label>
+                                <p>{selectedFarmer.phone}</p>
+                            </div>
+                            <div className="detail-item">
+                                <label>Location</label>
+                                <p>{selectedFarmer.sector}, {selectedFarmer.cell}, {selectedFarmer.village}</p>
+                            </div>
+                            <div className="detail-item">
+                                <label>Farm Type</label>
+                                <p className="capitalize">{selectedFarmer.farmType}</p>
+                            </div>
+                            <div className="detail-item">
+                                <label>Registered Date</label>
+                                <p>{selectedFarmer.registeredDate}</p>
+                            </div>
+                        </div>
 
-                    <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-                        <p><strong>Farmer ID:</strong> {selectedFarmer.id}</p>
-                        <p><strong>Phone:</strong> {selectedFarmer.phone}</p>
-                        <p><strong>Location:</strong> {selectedFarmer.sector}, {selectedFarmer.cell}, {selectedFarmer.village}</p>
-                        <p><strong>Farm Type:</strong> {selectedFarmer.farmType}</p>
-                        <p><strong>Registered Date:</strong> {selectedFarmer.registeredDate}</p>
-                    </div>
-
-                    <h3 style={{ marginBottom: 'var(--spacing-md)' }}>Delivery History</h3>
-                    <div className="table-container">
-                        <table className="table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Weight (kg)</th>
-                                    <th>Amount (RWF)</th>
-                                    <th>Lot ID</th>
-                                    <th>Payment Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {getFarmerDeliveries(selectedFarmer.id).map(delivery => (
-                                    <tr key={delivery.id}>
-                                        <td>{delivery.date}</td>
-                                        <td>{delivery.weight}</td>
-                                        <td>RWF {delivery.totalAmount.toLocaleString()}</td>
-                                        <td>{delivery.lotId}</td>
-                                        <td>
-                                            <span className={`badge ${delivery.paymentStatus === 'paid' ? 'badge-success' : 'badge-warning'}`}>
-                                                {delivery.paymentStatus}
-                                            </span>
-                                        </td>
+                        <h3 className="modal-section-title">Delivery History</h3>
+                        <div className="table-container">
+                            <table className="farmers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Weight (kg)</th>
+                                        <th>Amount (RWF)</th>
+                                        <th>Lot ID</th>
+                                        <th>Status</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {getFarmerDeliveries(selectedFarmer.id).map(delivery => (
+                                        <tr key={delivery.id}>
+                                            <td>{delivery.date}</td>
+                                            <td>{delivery.weight}</td>
+                                            <td>RWF {delivery.totalAmount.toLocaleString()}</td>
+                                            <td>{delivery.lotId}</td>
+                                            <td>
+                                                <span className={`status-badge ${delivery.paymentStatus}`}>
+                                                    {delivery.paymentStatus}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {getFarmerDeliveries(selectedFarmer.id).length === 0 && (
+                                        <tr>
+                                            <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>
+                                                No deliveries found for this farmer.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </Modal>
         </div>
     );
 };
