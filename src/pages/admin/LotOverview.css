@@ -1,0 +1,267 @@
+.lot-overview {
+    padding: 0;
+}
+
+.lot-overview .page-header {
+    margin-bottom: 32px;
+}
+
+.lot-overview .page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #512F02;
+    margin: 0 0 8px 0;
+}
+
+.lot-overview .page-description {
+    font-size: 0.95rem;
+    color: #8C8C8C;
+    margin: 0;
+}
+
+.lot-top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.lot-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.lot-stat-indicator {
+    width: 8px;
+    height: 64px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.lot-stat-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.lot-stat-label {
+    font-size: 1rem;
+    color: #8C8C8C;
+    margin-bottom: 8px;
+    font-weight: 400;
+}
+
+.lot-stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.indicator-brown {
+    background-color: #512F02;
+}
+
+.indicator-green {
+    background-color: #00C853;
+}
+
+.text-brown {
+    color: #800000;
+}
+
+.text-green {
+    color: #00C853;
+}
+
+.lot-chart-section {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 32px;
+}
+
+.lot-chart-card {
+    flex: 1;
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.lot-chart-title {
+    font-size: 0.9rem;
+    color: #999;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.lot-chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.lot-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.lot-bar-label {
+    width: 80px;
+    text-align: right;
+    font-size: 0.75rem;
+    color: #999;
+    text-transform: uppercase;
+}
+
+.lot-bar-wrapper {
+    flex: 1;
+    height: 36px;
+    background: transparent;
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.lot-bar {
+    height: 100%;
+    background: #512F02;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.lot-illustration {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Table */
+.lot-list-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.lot-section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 24px 0;
+}
+
+.lot-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.lot-table th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+    padding: 16px;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.lot-table td {
+    padding: 20px 16px;
+    font-size: 0.875rem;
+    color: #333;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+/* Badges */
+.badge-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
+}
+
+.badge-washed {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-honey {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+/* Using same blue as design looks like blue/honey */
+
+.badge-grade-a {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-created {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-progress {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-complete {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .lot-chart-section {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .lot-top-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.lot-bean-image {
+    width: 283px;
+    height: 335px;
+    object-fit: contain;
+    animation: floatImage 4s ease-in-out infinite;
+}
+
+@keyframes floatImage {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
