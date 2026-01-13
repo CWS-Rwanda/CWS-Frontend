@@ -9,26 +9,35 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true);
 
-        const result = login(email, password);
-
-        if (result.success) {
-            const roleRoutes = {
-                admin: '/admin',
-                receptionist: '/receptionist',
-                operator: '/operator',
-                sustainability: '/sustainability',
-                finance: '/finance',
-            };
-            navigate(roleRoutes[result.user.role]);
-        } else {
-            setError(result.error);
+        try {
+            const result = await login(email, password);
+            console.log("Result: ",result);
+            if (result.success) {
+                const roleRoutes = {
+                    admin: '/admin',
+                    receptionist: '/receptionist',
+                    operator: '/operator',
+                    sustainability: '/sustainability',
+                    finance: '/finance',
+                };
+                navigate(roleRoutes[result.response.data.data.user.role] || '/');
+            } else {
+                setError(result.error || 'Login failed. Please try again.');
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            setError('An error occurred during login. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -48,6 +57,7 @@ const Login = () => {
                     </div>
                     <form onSubmit={handleSubmit} className="login-form">
                         {error && <div className="login-error">{error}</div>}
+                        {isLoading && <div className="login-loading">Signing in...</div>}
                         <div className="form-group">
                             <input
                                 type="email"

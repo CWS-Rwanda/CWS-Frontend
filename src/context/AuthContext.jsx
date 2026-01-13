@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -15,39 +16,56 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('cws_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    const loadUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+        
+        if (token && storedUser) {
+          // Verify token and get fresh user data
+          const response = await authAPI.getProfile();
+          console.log("Response from load user: ",response);
+          setUser(response.data.data);
+          localStorage.setItem('user', JSON.stringify(response.data.data));
+        }
+      } catch (error) {
+        console.error('Error loading user:', error);
+        // Clear invalid auth data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUser();
   }, []);
 
-  const login = (email, password) => {
-    // Demo users
-    const users = [
-      { id: 1, email: 'admin@cws.rw', password: 'admin123', role: 'admin', name: 'Admin User' },
-      { id: 2, email: 'receptionist@cws.rw', password: 'rec123', role: 'receptionist', name: 'Reception Staff' },
-      { id: 3, email: 'operator@cws.rw', password: 'op123', role: 'operator', name: 'Processing Operator' },
-      { id: 4, email: 'sustainability@cws.rw', password: 'sus123', role: 'sustainability', name: 'Quality Manager' },
-      { id: 5, email: 'finance@cws.rw', password: 'fin123', role: 'finance', name: 'Finance Officer' },
-    ];
-
-    const foundUser = users.find(u => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const { password, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem('cws_user', JSON.stringify(userWithoutPassword));
-      return { success: true, user: userWithoutPassword };
+  const login = async (email, password) => {
+    try {
+      const response = await authAPI.login({ email, password });
+      const { token, user } = response.data.data;
+      
+      // Store token and user data
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      setUser(user);
+      return { response };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Invalid email or password' 
+      };
     }
-    
-    return { success: false, error: 'Invalid email or password' };
   };
 
   const logout = () => {
+    // Clear auth data
     setUser(null);
-    localStorage.removeItem('cws_user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   return (
