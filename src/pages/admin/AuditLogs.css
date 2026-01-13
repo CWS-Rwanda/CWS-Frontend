@@ -1,0 +1,214 @@
+.audit-logs {
+    padding: 0;
+}
+
+.audit-logs .page-header {
+    margin-bottom: 32px;
+}
+
+.audit-logs .page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 8px 0;
+}
+
+.audit-logs .page-description {
+    font-size: 0.95rem;
+    color: #8C8C8C;
+    margin: 0;
+}
+
+.audit-filters-card {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-bottom: 40px;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.filter-label {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #512F02;
+    white-space: nowrap;
+}
+
+.filter-select {
+    min-width: 200px;
+    height: 50px;
+    padding: 0 16px;
+    border: 1px solid #512F02;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #000;
+    background: white;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23512F02' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    cursor: pointer;
+}
+
+.audit-content {
+    display: flex;
+    gap: 32px;
+}
+
+.audit-table-card {
+    width: 100%;
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.audit-illustration {
+    display: none;
+}
+
+.audit-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.audit-table th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+    padding: 16px 8px;
+    border-bottom: 2px solid #512F02;
+    /* Looks simpler in design actually, maybe no border or light border */
+    border-bottom: none;
+    /* Design shows clean headers, maybe light font */
+}
+
+.audit-table tbody tr td {
+    padding: 24px 8px;
+    vertical-align: middle;
+    font-size: 0.8rem;
+    /* Small text */
+    font-weight: 500;
+}
+
+.audit-table td.cell-name {
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding-left: 16px;
+    /* Add extra spacing for the first column */
+}
+
+/* Badges */
+.badge-role {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+}
+
+.badge-role-admin {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-role-receptionist {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-role-operator {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-role-finance {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-role-worker {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-entity {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+}
+
+.badge-entity-lot {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+/* Greenish */
+.badge-entity-delivery {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-entity-users {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-action {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+}
+
+.badge-action-update {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+/* Green */
+.badge-action-create {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+/* In design: 
+Admin -> blue pill
+Lot -> green pill
+Update -> green pill
+*/
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .audit-content {
+        flex-direction: column;
+    }
+
+    .audit-filters-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
