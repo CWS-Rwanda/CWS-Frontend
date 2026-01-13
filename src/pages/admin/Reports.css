@@ -1,0 +1,323 @@
+.reports-page {
+    padding: 0;
+}
+
+.reports-page .page-header {
+    margin-bottom: 32px;
+}
+
+.reports-page .page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #512F02;
+    margin: 0 0 8px 0;
+}
+
+.reports-page .page-description {
+    font-size: 0.95rem;
+    color: #8C8C8C;
+    margin: 0;
+}
+
+.reports-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.report-card {
+    width: 100%;
+    /* Max width to prevent it from getting too wide on huge screens, maintaining feel */
+    background: white;
+    border-radius: 20px;
+    padding: 48px;
+    /* Increased padding for larger feel */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+    /* Clips the accent strip to the rounded corners */
+    min-height: 250px;
+    /* Ensure substantial height */
+}
+
+/* Accent Strip - curved with container and inward */
+.report-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    /* Increased width for more curve */
+    border-radius: 0px 16px 16px 0;
+    /* More pronounced outward curve */
+}
+
+/* Restore ::before display that was hidden in previous step */
+.report-card::before {
+    display: block;
+}
+
+/* Remove separate indicator div styles */
+.report-indicator {
+    display: none;
+}
+
+.report-main-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    width: 100%;
+}
+
+/* Colors for the strip */
+.report-card.card-accent-brown::before {
+    background-color: #512F02;
+}
+
+.report-card.card-accent-purple::before {
+    background-color: #8B5CF6;
+}
+
+.report-card.card-accent-orange::before {
+    background-color: #F59E0B;
+}
+
+.report-card.card-accent-green::before {
+    background-color: #10B981;
+}
+
+.report-card.card-accent-blue::before {
+    background-color: #3B82F6;
+}
+
+.report-card.card-accent-teal::before {
+    background-color: #14B8A6;
+}
+
+.report-content-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.report-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.report-icon-wrapper svg {
+    width: 40px;
+    height: 40px;
+}
+
+/* Icon backgrounds */
+.icon-bg-brown {
+    background-color: #F3EBE3;
+    color: #512F02;
+}
+
+.icon-bg-purple {
+    background-color: #EDE9FE;
+    color: #8B5CF6;
+}
+
+.icon-bg-orange {
+    background-color: #FEF3C7;
+    color: #F59E0B;
+}
+
+.icon-bg-green {
+    background-color: #D1FAE5;
+    color: #10B981;
+}
+
+.icon-bg-blue {
+    background-color: #DBEAFE;
+    color: #3B82F6;
+}
+
+.icon-bg-teal {
+    background-color: #CCFBF1;
+    color: #14B8A6;
+}
+
+.report-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+}
+
+.report-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Title colors */
+.text-brown-dark {
+    color: #512F02;
+}
+
+.text-purple {
+    color: #8B5CF6;
+}
+
+.text-orange {
+    color: #F59E0B;
+}
+
+.text-green {
+    color: #10B981;
+}
+
+.text-blue {
+    color: #3B82F6;
+}
+
+.text-teal {
+    color: #14B8A6;
+}
+
+.report-meta {
+    font-size: 1rem;
+    color: #6B7280;
+}
+
+.report-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 20px;
+    justify-content: space-between;
+    /* Push time to top, button to bottom */
+    height: 100%;
+    margin-left: auto;
+    /* Ensure it stays on the right */
+    min-height: 160px;
+    /* Ensure space for separation */
+}
+
+.report-time {
+    font-size: 1rem;
+    color: #9CA3AF;
+    position: static;
+    /* Let flexbox handle it */
+}
+
+.btn-download-pdf {
+    padding: 16px 32px;
+    min-width: 180px;
+    border: 2px solid;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    /* Smooth transition */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: none;
+    background: transparent;
+}
+
+/* Button variants with hover effects */
+.btn-outline-brown {
+    border-color: #512F02;
+    color: #512F02;
+}
+
+.btn-outline-brown:hover {
+    background-color: #512F02;
+    color: white;
+}
+
+.btn-outline-purple {
+    border-color: #8B5CF6;
+    color: #8B5CF6;
+}
+
+.btn-outline-purple:hover {
+    background-color: #8B5CF6;
+    color: white;
+}
+
+.btn-outline-orange {
+    border-color: #F59E0B;
+    color: #F59E0B;
+}
+
+.btn-outline-orange:hover {
+    background-color: #F59E0B;
+    color: white;
+}
+
+.btn-outline-green {
+    border-color: #10B981;
+    color: #10B981;
+}
+
+.btn-outline-green:hover {
+    background-color: #10B981;
+    color: white;
+}
+
+.btn-outline-blue {
+    border-color: #3B82F6;
+    color: #3B82F6;
+}
+
+.btn-outline-blue:hover {
+    background-color: #3B82F6;
+    color: white;
+}
+
+.btn-outline-teal {
+    border-color: #14B8A6;
+    color: #14B8A6;
+}
+
+.btn-outline-teal:hover {
+    background-color: #14B8A6;
+    color: white;
+}
+
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .report-card {
+        padding: 32px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .report-main-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 24px;
+    }
+
+    .report-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .report-time {
+        order: -1;
+    }
+}

@@ -82,7 +82,11 @@
     font-weight: 600;
     min-height: 56px;
     padding: 16px 20px;
+    position: relative;
+    /* For the indicator */
 }
+
+/* Active Indicator Removed */
 
 .sidebar-link.active .sidebar-icon {
     color: white;
