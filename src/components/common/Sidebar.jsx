@@ -17,7 +17,7 @@ const Sidebar = () => {
                 { path: '/admin/pricing', label: 'Pricing', icon: 'pricing' },
                 { path: '/admin/lots', label: 'Lot', icon: 'lot' },
                 { path: '/admin/reports', label: 'Report', icon: 'report' },
-                { path: '/admin/audit', label: 'Report', icon: 'audit' },
+                { path: '/admin/audit', label: 'Audit', icon: 'audit' },
             ],
             receptionist: [
                 { path: '/receptionist', label: 'Delivery Entry', icon: 'grid' },
@@ -101,9 +101,10 @@ const Sidebar = () => {
                 </svg>
             ),
             audit: (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                    <path d="M12 2C9.5 2 8 4 8 4v8H6v6c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-6h-2V4s-1.5-2-4-2z" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <line x1="12" y1="15" x2="12" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <rect x="7" y="12" width="10" height="2" fill="currentColor" />
                 </svg>
             ),
         };
@@ -129,6 +130,7 @@ const Sidebar = () => {
                         }
                         end={item.path === `/${user?.role}`}
                     >
+                        <div className="active-indicator"></div>
                         <span className="sidebar-icon">{renderIcon(item.icon)}</span>
                         <span className="sidebar-label">{item.label}</span>
                     </NavLink>
