@@ -29,14 +29,14 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       // Handle specific status codes
-          if (error.response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-
-      // Let React Router handle navigation
-      window.dispatchEvent(new Event('unauthorized'));
-    }
-
+      if (error.response.status === 401) {
+        // Only clear auth data and redirect if we're not already on the login page
+        if (!window.location.pathname.includes('login')) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
+      }
       return Promise.reject(error.response.data);
     }
     return Promise.reject(error);
