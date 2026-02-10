@@ -1,38 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
-import { generateId } from '../../utils/dummyData';
+import { complianceLogsAPI } from '../../services/api';
 
 const QualityChecks = () => {
-    const { lots, qualityChecks, setQualityChecks } = useData();
+    const { lots, loading } = useData();
+    const [qualityChecks, setQualityChecks] = useState([]);
+    const [selectedLot, setSelectedLot] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
-        lotId: '',
+        lot_id: '',
         fermentationDuration: '',
         moisture: '',
         defects: '',
         notes: '',
     });
 
-    const handleSubmit = (e) => {
+    // Load compliance logs for selected lot
+    useEffect(() => {
+        if (selectedLot) {
+            loadComplianceLogs(selectedLot);
+        } else {
+            setQualityChecks([]);
+        }
+    }, [selectedLot]);
+
+    const loadComplianceLogs = async (lotId) => {
+        try {
+            const response = await complianceLogsAPI.getByLot(lotId);
+            // Filter for CPQI type
+            const cpqiLogs = response.data.data.filter(log => log.type === 'CPQI');
+            setQualityChecks(cpqiLogs);
+        } catch (error) {
+            console.error('Error loading compliance logs:', error);
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(null);
+        setIsSubmitting(true);
 
-        // Simple CPQI calculation
-        const score = Math.max(0, 100 - (parseInt(formData.defects) * 5));
+        try {
+            if (!formData.lot_id) {
+                setError('Please select a lot');
+                setIsSubmitting(false);
+                return;
+            }
 
-        const newCheck = {
-            id: generateId('QC'),
-            lotId: formData.lotId,
-            date: new Date().toISOString().split('T')[0],
-            fermentationDuration: parseInt(formData.fermentationDuration),
-            moisture: parseFloat(formData.moisture),
-            defects: parseInt(formData.defects),
-            cpqiScore: score,
-            compliant: score >= 80,
-            notes: formData.notes,
-        };
+            // Simple CPQI calculation
+            const score = Math.max(0, 100 - (parseInt(formData.defects) * 5));
+            const compliant = score >= 80;
 
-        setQualityChecks([...qualityChecks, newCheck]);
-        alert(`Quality check recorded. CPQI Score: ${score}%`);
-        setFormData({ lotId: '', fermentationDuration: '', moisture: '', defects: '', notes: '' });
+            await complianceLogsAPI.create({
+                lot_id: formData.lot_id,
+                type: 'CPQI',
+                score: score,
+                status: compliant ? 'COMPLIANT' : 'NON_COMPLIANT',
+                notes: `Fermentation: ${formData.fermentationDuration}hrs, Moisture: ${formData.moisture}%, Defects: ${formData.defects}. ${formData.notes || ''}`
+            });
+
+            alert(`Quality check recorded. CPQI Score: ${score}%`);
+            setFormData({ lot_id: '', fermentationDuration: '', moisture: '', defects: '', notes: '' });
+            await loadComplianceLogs(formData.lot_id);
+        } catch (err) {
+            console.error('Error creating quality check:', err);
+            setError(err.message || 'Failed to record quality check. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -47,19 +83,29 @@ const QualityChecks = () => {
                     <h2 className="card-title">New Quality Check</h2>
                 </div>
 
+                {error && (
+                    <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label className="form-label required">Lot ID</label>
+                        <label className="form-label required">Select Lot</label>
                         <select
                             className="form-select"
-                            value={formData.lotId}
-                            onChange={(e) => setFormData({ ...formData, lotId: e.target.value })}
+                            value={formData.lot_id}
+                            onChange={(e) => {
+                                setFormData({ ...formData, lot_id: e.target.value });
+                                setSelectedLot(e.target.value);
+                            }}
                             required
+                            disabled={isSubmitting}
                         >
                             <option value="">-- Select Lot --</option>
                             {lots.map(lot => (
                                 <option key={lot.id} value={lot.id}>
-                                    {lot.id} - {lot.status}
+                                    {lot.lotName || lot.id} - {lot.processingMethod} ({lot.status})
                                 </option>
                             ))}
                         </select>
@@ -108,49 +154,53 @@ const QualityChecks = () => {
                         ></textarea>
                     </div>
 
-                    <button type="submit" className="btn btn-primary">
-                        Submit Quality Check
+                    <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                        {isSubmitting ? 'Submitting...' : 'Submit Quality Check'}
                     </button>
                 </form>
             </div>
 
             <div className="content-card">
                 <div className="card-header">
-                    <h2 className="card-title">Quality Check History</h2>
+                    <h2 className="card-title">Quality Check History {selectedLot && `(Lot: ${lots.find(l => l.id === selectedLot)?.lotName || selectedLot})`}</h2>
                 </div>
 
-                <div className="table-container">
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Lot ID</th>
-                                <th>Fermentation (hrs)</th>
-                                <th>Moisture (%)</th>
-                                <th>Defects</th>
-                                <th>CPQI Score</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {qualityChecks.slice().reverse().map(check => (
-                                <tr key={check.id}>
-                                    <td>{check.date}</td>
-                                    <td><strong>{check.lotId}</strong></td>
-                                    <td>{check.fermentationDuration}</td>
-                                    <td>{check.moisture}%</td>
-                                    <td>{check.defects}</td>
-                                    <td><strong>{check.cpqiScore}%</strong></td>
-                                    <td>
-                                        <span className={`badge ${check.compliant ? 'badge-success' : 'badge-error'}`}>
-                                            {check.compliant ? 'Compliant' : 'Non-compliant'}
-                                        </span>
-                                    </td>
+                {!selectedLot ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>Select a lot above to view quality check history</div>
+                ) : loading.qualityChecks ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>Loading quality checks...</div>
+                ) : qualityChecks.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>No quality checks found for this lot.</div>
+                ) : (
+                    <div className="table-container">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Lot ID</th>
+                                    <th>CPQI Score</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {qualityChecks.map(check => (
+                                    <tr key={check.id}>
+                                        <td>{check.created_at?.split('T')[0] || 'N/A'}</td>
+                                        <td><strong>{check.lot_id}</strong></td>
+                                        <td><strong>{parseFloat(check.score || 0).toFixed(1)}%</strong></td>
+                                        <td>
+                                            <span className={`badge ${check.status === 'COMPLIANT' ? 'badge-success' : 'badge-error'}`}>
+                                                {check.status}
+                                            </span>
+                                        </td>
+                                        <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{check.notes || '-'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </div>
     );

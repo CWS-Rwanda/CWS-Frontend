@@ -61,6 +61,7 @@ const ProtectedLayout = ({ children, allowedRole }) => {
 const AppRoutes = () => {
   const { user, isLoading } = useAuth();
 
+  // Show loading screen while checking auth state
   if (isLoading) {
     return (
       <div className="loading-screen">
@@ -69,6 +70,7 @@ const AppRoutes = () => {
     );
   }
 
+  // If not loading but no user, show login
   if (!user) {
     return <Login />;
   }

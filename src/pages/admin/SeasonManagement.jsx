@@ -1,46 +1,60 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
+import { seasonsAPI, revenuesAPI } from '../../services/api';
 import Modal from '../../components/common/Modal';
 import './SeasonManagement.css';
 
-// Mock season data matching the design
-const mockSeasons = [
-    { id: 'S001', name: '2024A', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 4200000 },
-    { id: 'S002', name: '2025B', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 6100000 },
-    { id: 'S003', name: '2023A', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 5300000 },
-    { id: 'S004', name: '2023B', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 7800000 },
-    { id: 'S005', name: '2024A', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 8500000 },
-    { id: 'S006', name: '2024B', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 10200000 },
-    { id: 'S007', name: '2025A', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 1530000 },
-    { id: 'S008', name: '2025B', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 6900000 },
-    { id: 'S009', name: '2026A', startDate: '2025-04-15', endDate: '2025-04-15', status: 'active', revenue: 0 },
-    { id: 'S010', name: '2026B', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 0 },
-    { id: 'S011', name: '2027B', startDate: '2025-04-15', endDate: '2025-04-15', status: 'closed', revenue: 0 },
-];
-
 const SeasonManagement = () => {
-    const { seasons, setSeasons } = useData();
+    const { seasons, revenue, fetchSeasons, fetchRevenues, loading } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [editingSeason, setEditingSeason] = useState(null);
     const [hoveredBar, setHoveredBar] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
-        startDate: '',
-        endDate: ''
+        start_date: '',
+        end_date: '',
+        active: true
     });
     const [updateFormData, setUpdateFormData] = useState({
         name: '',
-        startDate: '',
-        endDate: '',
-        status: 'inactive'
+        start_date: '',
+        end_date: '',
+        active: false
     });
 
-    // Combine mock and actual seasons
+    // Load revenues on mount to calculate season revenue
+    useEffect(() => {
+        if (revenue.length === 0) {
+            fetchRevenues();
+        }
+    }, []);
+
+    // Transform backend season to frontend format
+    const transformSeason = (season) => {
+        // Calculate revenue for this season
+        const seasonRevenue = revenue
+            .filter(r => r.season_id === season.id)
+            .reduce((sum, r) => sum + parseFloat(r.total_amount || 0), 0);
+
+        return {
+            id: season.id,
+            name: season.name,
+            startDate: season.start_date ? new Date(season.start_date).toLocaleDateString() : 'Not set',
+            endDate: season.end_date ? new Date(season.end_date).toLocaleDateString() : 'Not set',
+            status: season.active ? 'active' : 'closed',
+            active: season.active,
+            revenue: seasonRevenue
+        };
+    };
+
+    // Transform seasons with revenue calculations
     const displaySeasons = useMemo(() => {
-        return [...mockSeasons, ...seasons];
-    }, [seasons]);
+        return seasons.map(transformSeason);
+    }, [seasons, revenue]);
 
     // Prepare chart data
     const chartData = useMemo(() => {
@@ -62,40 +76,97 @@ const SeasonManagement = () => {
     const barWidth = 80;
     const spacing = 40;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const newSeason = {
-            id: `S${String(seasons.length + mockSeasons.length + 1).padStart(3, '0')}`,
-            ...formData,
-            status: 'inactive',
-            revenue: 0
-        };
-        setSeasons([...seasons, newSeason]);
-        setIsModalOpen(false);
-        setFormData({ name: '', startDate: '', endDate: '' });
+        setError(null);
+        setIsSubmitting(true);
+
+        try {
+            // Validate dates
+            if (new Date(formData.start_date) > new Date(formData.end_date)) {
+                setError('End date must be after start date');
+                setIsSubmitting(false);
+                return;
+            }
+
+            await seasonsAPI.create({
+                name: formData.name,
+                start_date: formData.start_date,
+                end_date: formData.end_date,
+                active: formData.active
+            });
+
+            setIsModalOpen(false);
+            setFormData({ name: '', start_date: '', end_date: '', active: true });
+            await fetchSeasons();
+        } catch (err) {
+            console.error('Error creating season:', err);
+            setError(err.message || 'Failed to create season. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleUpdateClick = (season) => {
-        setEditingSeason(season);
+        // Find the original season from backend format
+        const originalSeason = seasons.find(s => s.id === season.id);
+        if (!originalSeason) return;
+
+        setEditingSeason(originalSeason);
         setUpdateFormData({
-            name: season.name,
-            startDate: season.startDate,
-            endDate: season.endDate,
-            status: season.status
+            name: originalSeason.name,
+            start_date: originalSeason.start_date,
+            end_date: originalSeason.end_date,
+            active: originalSeason.active
         });
         setIsUpdateModalOpen(true);
     };
 
-    const handleUpdateSubmit = (e) => {
+    const handleUpdateSubmit = async (e) => {
         e.preventDefault();
-        if (editingSeason) {
-            const updatedSeasons = seasons.map(s => 
-                s.id === editingSeason.id ? { ...s, ...updateFormData } : s
-            );
-            setSeasons(updatedSeasons);
+        if (!editingSeason) return;
+
+        setError(null);
+        setIsSubmitting(true);
+
+        try {
+            // Validate dates
+            if (new Date(updateFormData.start_date) > new Date(updateFormData.end_date)) {
+                setError('End date must be after start date');
+                setIsSubmitting(false);
+                return;
+            }
+
+            await seasonsAPI.update(editingSeason.id, {
+                name: updateFormData.name,
+                start_date: updateFormData.start_date,
+                end_date: updateFormData.end_date,
+                active: updateFormData.active
+            });
+
+            setIsUpdateModalOpen(false);
+            setEditingSeason(null);
+            await fetchSeasons();
+        } catch (err) {
+            console.error('Error updating season:', err);
+            setError(err.message || 'Failed to update season. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsUpdateModalOpen(false);
-        setEditingSeason(null);
+    };
+
+    const handleDeactivate = async (seasonId) => {
+        if (!window.confirm('Are you sure you want to deactivate this season?')) {
+            return;
+        }
+
+        try {
+            await seasonsAPI.deactivate(seasonId);
+            await fetchSeasons();
+        } catch (err) {
+            console.error('Error deactivating season:', err);
+            alert(err.message || 'Failed to deactivate season. Please try again.');
+        }
     };
 
     const getStatusColor = (status) => {
@@ -217,7 +288,7 @@ const SeasonManagement = () => {
             <div className="content-card">
                 <div className="card-header-section">
                     <h2 className="section-title">All Seasons</h2>
-                    <button onClick={() => setIsModalOpen(true)} className="btn-add-season">
+                    <button onClick={() => setIsModalOpen(true)} className="btn-add-season" disabled={isSubmitting}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -226,48 +297,74 @@ const SeasonManagement = () => {
                     </button>
                 </div>
 
-                <div className="table-container">
-                    <table className="seasons-table">
-                        <thead>
-                            <tr>
-                                <th>SEASON NAME</th>
-                                <th>START DATE</th>
-                                <th>END DATE</th>
-                                <th>STATUS</th>
-                                <th>ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {displaySeasons.map(season => (
-                                <tr key={season.id}>
-                                    <td>
-                                        <span className="season-name-link">{season.name}</span>
-                                    </td>
-                                    <td>{season.startDate}</td>
-                                    <td>{season.endDate}</td>
-                                    <td>
-                                        <span
-                                            className={`badge ${season.status === 'active' ? 'badge-status-active' : 'badge-status-closed'}`}
-                                        >
-                                            {season.status === 'active' ? 'Active' : 'Closed'}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button 
-                                            className="btn-update"
-                                            onClick={() => handleUpdateClick(season)}
-                                        >
-                                            Update
-                                        </button>
-                                    </td>
+                {loading.seasons ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>Loading seasons...</div>
+                ) : displaySeasons.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>No seasons found. Create your first season to get started.</div>
+                ) : (
+                    <div className="table-container">
+                        <table className="seasons-table">
+                            <thead>
+                                <tr>
+                                    <th>SEASON NAME</th>
+                                    <th>START DATE</th>
+                                    <th>END DATE</th>
+                                    <th>STATUS</th>
+                                    <th>REVENUE</th>
+                                    <th>ACTIONS</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {displaySeasons.map(season => (
+                                    <tr key={season.id}>
+                                        <td>
+                                            <span className="season-name-link">{season.name}</span>
+                                        </td>
+                                        <td>{season.startDate}</td>
+                                        <td>{season.endDate}</td>
+                                        <td>
+                                            <span
+                                                className={`badge ${season.status === 'active' ? 'badge-status-active' : 'badge-status-closed'}`}
+                                            >
+                                                {season.status === 'active' ? 'Active' : 'Closed'}
+                                            </span>
+                                        </td>
+                                        <td>RWF {season.revenue.toLocaleString()}</td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button 
+                                                    className="btn-update"
+                                                    onClick={() => handleUpdateClick(season)}
+                                                    disabled={isSubmitting}
+                                                >
+                                                    Update
+                                                </button>
+                                                {season.active && (
+                                                    <button 
+                                                        className="btn btn-outline"
+                                                        onClick={() => handleDeactivate(season.id)}
+                                                        disabled={isSubmitting}
+                                                        style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}
+                                                    >
+                                                        Deactivate
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Season">
+                {error && (
+                    <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
+                        {error}
+                    </div>
+                )}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label className="form-label required">Season Name</label>
@@ -278,6 +375,7 @@ const SeasonManagement = () => {
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             placeholder="e.g., 2025B"
                             required
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -286,9 +384,10 @@ const SeasonManagement = () => {
                         <input
                             type="date"
                             className="form-input"
-                            value={formData.startDate}
-                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                            value={formData.start_date}
+                            onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                             required
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -297,15 +396,34 @@ const SeasonManagement = () => {
                         <input
                             type="date"
                             className="form-input"
-                            value={formData.endDate}
-                            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                            value={formData.end_date}
+                            onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                             required
+                            disabled={isSubmitting}
                         />
                     </div>
 
+                    <div className="form-group">
+                        <label className="form-label">Active Status</label>
+                        <select
+                            className="form-select"
+                            value={formData.active ? 'true' : 'false'}
+                            onChange={(e) => setFormData({ ...formData, active: e.target.value === 'true' })}
+                            disabled={isSubmitting}
+                        >
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                        <small style={{ color: 'var(--color-gray-600)', fontSize: '0.875rem' }}>
+                            Only one season should be active at a time
+                        </small>
+                    </div>
+
                     <div className="actions-group" style={{ marginTop: 'var(--spacing-lg)' }}>
-                        <button type="submit" className="btn btn-primary">Create Season</button>
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-outline">
+                        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                            {isSubmitting ? 'Creating...' : 'Create Season'}
+                        </button>
+                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-outline" disabled={isSubmitting}>
                             Cancel
                         </button>
                     </div>
@@ -313,6 +431,11 @@ const SeasonManagement = () => {
             </Modal>
 
             <Modal isOpen={isUpdateModalOpen} onClose={() => setIsUpdateModalOpen(false)} title="Update Season">
+                {error && (
+                    <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
+                        {error}
+                    </div>
+                )}
                 <form onSubmit={handleUpdateSubmit}>
                     <div className="form-group">
                         <label className="form-label required">Season Name</label>
@@ -322,6 +445,7 @@ const SeasonManagement = () => {
                             value={updateFormData.name}
                             onChange={(e) => setUpdateFormData({ ...updateFormData, name: e.target.value })}
                             required
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -330,9 +454,10 @@ const SeasonManagement = () => {
                         <input
                             type="date"
                             className="form-input"
-                            value={updateFormData.startDate}
-                            onChange={(e) => setUpdateFormData({ ...updateFormData, startDate: e.target.value })}
+                            value={updateFormData.start_date}
+                            onChange={(e) => setUpdateFormData({ ...updateFormData, start_date: e.target.value })}
                             required
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -341,29 +466,35 @@ const SeasonManagement = () => {
                         <input
                             type="date"
                             className="form-input"
-                            value={updateFormData.endDate}
-                            onChange={(e) => setUpdateFormData({ ...updateFormData, endDate: e.target.value })}
+                            value={updateFormData.end_date}
+                            onChange={(e) => setUpdateFormData({ ...updateFormData, end_date: e.target.value })}
                             required
+                            disabled={isSubmitting}
                         />
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label required">Status</label>
+                        <label className="form-label required">Active Status</label>
                         <select
                             className="form-select"
-                            value={updateFormData.status}
-                            onChange={(e) => setUpdateFormData({ ...updateFormData, status: e.target.value })}
+                            value={updateFormData.active ? 'true' : 'false'}
+                            onChange={(e) => setUpdateFormData({ ...updateFormData, active: e.target.value === 'true' })}
                             required
+                            disabled={isSubmitting}
                         >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="closed">Closed</option>
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
                         </select>
+                        <small style={{ color: 'var(--color-gray-600)', fontSize: '0.875rem' }}>
+                            Only one season should be active at a time
+                        </small>
                     </div>
 
                     <div className="actions-group" style={{ marginTop: 'var(--spacing-lg)' }}>
-                        <button type="submit" className="btn btn-primary">Update Season</button>
-                        <button type="button" onClick={() => setIsUpdateModalOpen(false)} className="btn btn-outline">
+                        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                            {isSubmitting ? 'Updating...' : 'Update Season'}
+                        </button>
+                        <button type="button" onClick={() => setIsUpdateModalOpen(false)} className="btn btn-outline" disabled={isSubmitting}>
                             Cancel
                         </button>
                     </div>

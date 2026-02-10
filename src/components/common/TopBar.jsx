@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import AdminImage from '../../assets/Admin-Image.jpg';
 import './TopBar.css';
@@ -12,6 +12,10 @@ const TopBar = () => {
         // Handle search logic here
         console.log('Search:', searchQuery);
     };
+
+    useEffect(() => {
+        console.log("User: ",user);
+    },[user])
 
     return (
         <header className="topbar">
@@ -47,7 +51,7 @@ const TopBar = () => {
                         )}
                     </div>
                     <span className="user-name">
-                        {user?.role === 'admin' ? 'Rukundo Furaha Divin' : (user?.name || 'User')}
+                        {user?.role === 'admin' ? (user?.name ? user?.name : 'Rukundo Furaha Divin') : (user?.name || 'User')}
                     </span>
                 </div>
             </div>

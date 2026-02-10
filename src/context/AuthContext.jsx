@@ -16,29 +16,42 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const loadUser = async () => {
       try {
         const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
         
-        if (token && storedUser) {
-          // Verify token and get fresh user data
-          const response = await authAPI.getProfile();
-          console.log("Response from load user: ",response);
-          setUser(response.data.data);
-          localStorage.setItem('user', JSON.stringify(response.data.data));
+        if (!token) {
+          setIsLoading(false);
+          return;
+        }
+        
+        // Only try to get fresh user data if we have a token
+        const response = await authAPI.getProfile();
+        if (isMounted) {
+          const userData = response.data.data;
+          setUser(userData);
+          localStorage.setItem('user', JSON.stringify(userData));
         }
       } catch (error) {
         console.error('Error loading user:', error);
         // Clear invalid auth data
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setUser(null);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadUser();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = async (email, password) => {

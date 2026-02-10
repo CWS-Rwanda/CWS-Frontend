@@ -1,0 +1,80 @@
+/* src/components/lots/AddLotForm.css */
+.add-lot-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.add-lot-form .form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.add-lot-form .form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.add-lot-form .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.add-lot-form .alert {
+    margin-bottom: 1.5rem;
+}
+
+.add-lot-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.add-lot-form .form-control {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+}
+
+.add-lot-form textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.add-lot-form .btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-lot-form .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.add-lot-form .btn-primary:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.add-lot-form .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.add-lot-form .btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+.add-lot-form .btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}

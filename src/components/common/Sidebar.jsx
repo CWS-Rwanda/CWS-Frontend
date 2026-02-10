@@ -39,6 +39,7 @@ const Sidebar = () => {
                 { path: '/finance/assets', label: 'Asset Management', icon: 'lot' },
                 { path: '/finance/revenue', label: 'Revenue', icon: 'pricing' },
                 { path: '/finance/statements', label: 'Financial Statements', icon: 'report' },
+                { path: '/finance/reports', label: 'Financial Reports', icon: 'analytics' },
                 { path: '/finance/kpis', label: 'KPIs & Alerts', icon: 'calendar' },
             ],
         };
@@ -105,6 +106,13 @@ const Sidebar = () => {
                     <path d="M12 2C9.5 2 8 4 8 4v8H6v6c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-6h-2V4s-1.5-2-4-2z" stroke="currentColor" strokeWidth="2" fill="none" />
                     <line x1="12" y1="15" x2="12" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     <rect x="7" y="12" width="10" height="2" fill="currentColor" />
+                </svg>
+            ),
+            analytics: (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
                 </svg>
             ),
         };

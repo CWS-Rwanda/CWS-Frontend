@@ -1,29 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useData } from '../../context/DataContext';
 import './LotOverview.css';
 import lotCoffeeImage from '../../assets/Lot-Coffee.png';
+import AddLotForm from '../../components/lots/addLotForm';
+import { toast } from 'react-toastify';
 
 const LotOverview = () => {
-    const { lots } = useData();
-    // Use real data where available, otherwise mock for the design structure
-    const totalLots = 128; // From design
-    const avgQualityScore = "87%"; // From design
+    const { lots, loading } = useData();
+    
+    useEffect(() => {
+        console.log(lots);
+    },[lots])
 
-    // Mock chart data for "Lot Status Overview"
-    const lotStatusData = [
-        { label: 'COMPLETED', value: 3, width: '30%' },
-        { label: 'IN PROCESS', value: 6, width: '60%' },
-        { label: 'CREATED', value: 3, width: '30%' },
-    ];
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const handleAddLotSuccess = (message) => {
+        toast.success(message);
+    };
+
+    // Calculate real data from lots
+    const totalLots = lots.length;
+    
+    // Calculate lot status distribution
+    const statusCounts = lots.reduce((acc, lot) => {
+        const status = lot.status || 'CREATED';
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+    }, {});
+    
+    const totalForChart = Math.max(Object.values(statusCounts).reduce((sum, val) => sum + val, 0), 1);
+    
+    const lotStatusData = Object.entries(statusCounts).map(([label, value]) => ({
+        label,
+        value,
+        width: `${(value / totalForChart) * 100}%`
+    }));
+    
+    // Calculate average quality score from compliance logs (if available)
+    const avgQualityScore = "N/A"; // Would need compliance logs API to calculate
 
     // Design matches: Lot ID, Created, Process Type, Grade, Status, Weight, Quality Score
     // Using filtered lots or all lots based on requirements. Design shows "All Lots" title.
 
     return (
         <div className="lot-overview">
-            <div className="page-header">
-                <h1 className="page-title">Lot Overview</h1>
-                <p className="page-description">Global production monitoring of everything received from farmers</p>
+          <div className="page-header">
+                <div>
+                    <h1 className="page-title">Coffee Lots</h1>
+                    <p className="page-description">Manage coffee processing lots</p>
+                </div>
+                <button 
+                    className="btn btn-primary"
+                    onClick={() => setIsAddModalOpen(true)}
+                >
+                    + Add New Lot
+                </button>
             </div>
 
             <div className="lot-top-grid">
@@ -115,6 +145,11 @@ const LotOverview = () => {
                     </table>
                 </div>
             </div>
+                <AddLotForm 
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSuccess={handleAddLotSuccess}
+            />
         </div>
     );
 };

@@ -51,8 +51,8 @@ const AdminDashboard = () => {
             
             // Get revenue for this date
             const dayRevenue = revenue
-                .filter(r => r.date === dateStr)
-                .reduce((sum, r) => sum + r.totalRevenue, 0);
+                .filter(r => (r.sale_date || r.date) === dateStr)
+                .reduce((sum, r) => sum + parseFloat(r.total_amount || r.totalRevenue || 0), 0);
             
             last10Days.push({
                 date: dateStr,

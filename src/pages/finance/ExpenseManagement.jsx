@@ -1,45 +1,76 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { generateId } from '../../utils/dummyData';
+import { useAuth } from '../../context/AuthContext';
+import { expensesAPI } from '../../services/api';
 import Modal from '../../components/common/Modal';
 
 const ExpenseManagement = () => {
-    const { expenses, setExpenses } = useData();
+    const { expenses, seasons, fetchExpenses, loading } = useData();
+    const { user } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
-        category: 'Energy & Utilities',
+        category: 'UTILITIES',
         description: '',
         amount: '',
+        expense_date: new Date().toISOString().split('T')[0],
     });
 
+    // Map frontend categories to backend ENUM values
     const categories = [
-        'Energy & Utilities',
-        'Maintenance',
-        'Consumables',
-        'Administration',
-        'Environmental',
-        'Other'
+        { label: 'Transport', value: 'TRANSPORT' },
+        { label: 'Labor', value: 'LABOR' },
+        { label: 'Equipment Maintenance', value: 'EQUIPMENT_MAINTENANCE' },
+        { label: 'Raw Materials', value: 'RAW_MATERIALS' },
+        { label: 'Administration', value: 'ADMINISTRATION' },
+        { label: 'Utilities', value: 'UTILITIES' },
+        { label: 'Other', value: 'OTHER' }
     ];
 
-    const handleSubmit = (e) => {
+    const currentSeason = seasons.find(s => s.active === true || s.status === 'ACTIVE' || s.status === 'active');
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(null);
+        setIsSubmitting(true);
 
-        const newExpense = {
-            id: generateId('EXP'),
-            date: new Date().toISOString().split('T')[0],
-            category: formData.category,
-            description: formData.description,
-            amount: parseFloat(formData.amount),
-            season: '2025A',
-            receipt: null,
-        };
+        try {
+            if (!currentSeason) {
+                setError('No active season found. Please create or activate a season first.');
+                setIsSubmitting(false);
+                return;
+            }
 
-        setExpenses([...expenses, newExpense]);
-        setIsModalOpen(false);
-        setFormData({ category: 'Energy & Utilities', description: '', amount: '' });
+            await expensesAPI.create({
+                season_id: currentSeason.id,
+                category: formData.category,
+                description: formData.description,
+                amount: parseFloat(formData.amount),
+                expense_date: formData.expense_date
+            });
+
+            setIsModalOpen(false);
+            setFormData({ category: 'UTILITIES', description: '', amount: '', expense_date: new Date().toISOString().split('T')[0] });
+            await fetchExpenses();
+        } catch (err) {
+            console.error('Error creating expense:', err);
+            setError(err.message || 'Failed to create expense. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const totalExpenses = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+    
+    // Transform expense for display
+    const transformExpense = (expense) => ({
+        id: expense.id,
+        date: expense.expense_date || expense.date,
+        category: expense.category,
+        description: expense.description || '',
+        amount: parseFloat(expense.amount || 0),
+    });
 
     return (
         <div>
@@ -62,38 +93,52 @@ const ExpenseManagement = () => {
             <div className="content-card">
                 <div className="card-header">
                     <h2 className="card-title">All Expenses</h2>
-                    <button onClick={() => setIsModalOpen(true)} className="btn btn-primary">
+                    <button onClick={() => setIsModalOpen(true)} className="btn btn-primary" disabled={!currentSeason}>
                         + Add Expense
                     </button>
                 </div>
 
-                <div className="table-container">
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Category</th>
-                                <th>Description</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {expenses.slice().reverse().map(expense => (
-                                <tr key={expense.id}>
-                                    <td>{expense.date}</td>
-                                    <td>
-                                        <span className="badge badge-info">{expense.category}</span>
-                                    </td>
-                                    <td>{expense.description}</td>
-                                    <td><strong>RWF {expense.amount.toLocaleString()}</strong></td>
+                {loading.expenses ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>Loading expenses...</div>
+                ) : expenses.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>No expenses found.</div>
+                ) : (
+                    <div className="table-container">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {expenses.slice().reverse().map(expense => {
+                                    const transformed = transformExpense(expense);
+                                    return (
+                                        <tr key={transformed.id}>
+                                            <td>{transformed.date}</td>
+                                            <td>
+                                                <span className="badge badge-info">{transformed.category.replace('_', ' ')}</span>
+                                            </td>
+                                            <td>{transformed.description}</td>
+                                            <td><strong>RWF {transformed.amount.toLocaleString()}</strong></td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Expense">
+                {error && (
+                    <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
+                        {error}
+                    </div>
+                )}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label className="form-label required">Category</label>
@@ -102,11 +147,24 @@ const ExpenseManagement = () => {
                             value={formData.category}
                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                             required
+                            disabled={isSubmitting}
                         >
                             {categories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
+                                <option key={cat.value} value={cat.value}>{cat.label}</option>
                             ))}
                         </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label required">Date</label>
+                        <input
+                            type="date"
+                            className="form-input"
+                            value={formData.expense_date}
+                            onChange={(e) => setFormData({ ...formData, expense_date: e.target.value })}
+                            required
+                            disabled={isSubmitting}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -132,8 +190,10 @@ const ExpenseManagement = () => {
                     </div>
 
                     <div className="actions-group" style={{ marginTop: 'var(--spacing-lg)' }}>
-                        <button type="submit" className="btn btn-primary">Add Expense</button>
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-outline">
+                        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                            {isSubmitting ? 'Adding...' : 'Add Expense'}
+                        </button>
+                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-outline" disabled={isSubmitting}>
                             Cancel
                         </button>
                     </div>

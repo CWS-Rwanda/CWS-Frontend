@@ -4,11 +4,11 @@ import { useData } from '../../context/DataContext';
 const KPIs = () => {
     const { deliveries, revenue, expenses, laborCosts } = useData();
 
-    const totalCherryCost = deliveries.reduce((sum, d) => sum + d.totalAmount, 0);
-    const totalCherries = deliveries.reduce((sum, d) => sum + d.weight, 0);
-    const totalRevenue = revenue.reduce((sum, r) => sum + r.totalRevenue, 0);
-    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-    const totalLabor = laborCosts.reduce((sum, l) => sum + l.totalCost, 0);
+    const totalCherryCost = deliveries.reduce((sum, d) => sum + parseFloat(d.total_amount || d.totalAmount || 0), 0);
+    const totalCherries = deliveries.reduce((sum, d) => sum + parseFloat(d.weight_kg || d.weight || 0), 0);
+    const totalRevenue = revenue.reduce((sum, r) => sum + parseFloat(r.total_amount || r.totalRevenue || 0), 0);
+    const totalExpenses = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+    const totalLabor = laborCosts.reduce((sum, l) => sum + parseFloat(l.total_amount || l.totalCost || 0), 0);
     const totalCosts = totalCherryCost + totalExpenses + totalLabor;
     const netProfit = totalRevenue - totalCosts;
 
