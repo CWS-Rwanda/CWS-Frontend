@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import Login from './pages/Login';
@@ -60,6 +60,12 @@ const ProtectedLayout = ({ children, allowedRole }) => {
 
 const AppRoutes = () => {
   const { user, isLoading } = useAuth();
+      const navigate = useNavigate();
+    useEffect(() => {
+    const handler = () => navigate('/login', { replace: true });
+    window.addEventListener('unauthorized', handler);
+    return () => window.removeEventListener('unauthorized', handler);
+  }, [navigate]);
 
   // Show loading screen while checking auth state
   if (isLoading) {
@@ -117,7 +123,7 @@ const AppRoutes = () => {
 
 function App() {
 
-  
+
   return (
     <BrowserRouter>
       <AuthProvider>
