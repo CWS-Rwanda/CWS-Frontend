@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useData } from '../../context/DataContext';
 import Modal from '../common/Modal';
-import './AddLotForm.css';
+import './addLotForm.css';
 import { lotsAPI } from '../../services/api';
 
 const AddLotForm = ({ isOpen, onClose, onSuccess }) => {
