@@ -5,14 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --mode production",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.2",
     "axios": "^1.13.2",
-    "cws": "file:..",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.0.0",
     "react": "^19.2.0",
