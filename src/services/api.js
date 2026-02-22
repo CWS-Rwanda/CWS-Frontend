@@ -196,13 +196,13 @@ export const adminUsersAPI = {
 export const revolvingCreditAccountAPI = {
   getAll: () => api.get('/revolvingCreditAccount'),
   getById: (id) => api.get(`/revolvingCreditAccount/${id}`),
-  create: (data) => api.post('/revolvingCreditAccount', data),
+  create: (data) => api.post('/revolvingCreditAccount', data)
 };
 
 // Revolving Credit Transactions API
-export const revolvingCreditTransactionsAPI = {
+export const revolvingCreditTransactionAPI = {
   draw: (data) => api.post('/revolvingCreditTransactions/draw', data),
-  repay: (data) => api.post('/revolvingCreditTransactions/repay', data),
+  repay: (data) => api.post('/revolvingCreditTransactions/repay', data)
 };
 
 // Finance Summaries API

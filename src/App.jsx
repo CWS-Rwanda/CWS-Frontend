@@ -23,6 +23,8 @@ import DeliveryHistory from './pages/receptionist/DeliveryHistory';
 // Operator Pages
 import LotProcessing from './pages/operator/LotProcessing';
 import ProcessingLogs from './pages/operator/ProcessingLogs';
+import DryingMonitor from './pages/operator/DryingMonitor';
+import DryingLogs from './pages/operator/DryingLogs';
 import BagManagement from './pages/operator/BagManagement';
 
 // Sustainability Pages
@@ -37,14 +39,21 @@ import AssetManagement from './pages/finance/AssetManagement';
 import RevenueManagement from './pages/finance/RevenueManagement';
 import FinancialStatements from './pages/finance/FinancialStatements';
 import KPIs from './pages/finance/KPIs';
+import LoanManagement from './pages/finance/LoanManagement';
+import FinancingSourceManagement from './pages/finance/FinancingSourceManagement';
 
 import './App.css';
 
 const ProtectedLayout = ({ children, allowedRole }) => {
   const { user } = useAuth();
 
-  if (user?.role !== allowedRole) {
-    return <Navigate to={`/${user?.role}`} replace />;
+  // Handle both string and array allowedRole
+  const isAllowed = Array.isArray(allowedRole) 
+    ? allowedRole.includes(user?.role) || allowedRole.includes(user?.role?.toLowerCase())
+    : user?.role === allowedRole || user?.role?.toLowerCase() === allowedRole;
+
+  if (!isAllowed) {
+    return <Navigate to={`/${user?.role === 'FINANCE' ? 'finance' : user?.role?.toLowerCase()}`} replace />;
   }
 
   return (
@@ -100,6 +109,8 @@ const AppRoutes = () => {
       {/* Operator Routes */}
       <Route path="/operator" element={<ProtectedLayout allowedRole="operator"><LotProcessing /></ProtectedLayout>} />
       <Route path="/operator/logs" element={<ProtectedLayout allowedRole="operator"><ProcessingLogs /></ProtectedLayout>} />
+      <Route path="/operator/drying-monitor" element={<ProtectedLayout allowedRole="operator"><DryingMonitor /></ProtectedLayout>} />
+      <Route path="/operator/drying-logs" element={<ProtectedLayout allowedRole="operator"><DryingLogs /></ProtectedLayout>} />
       <Route path="/operator/bags" element={<ProtectedLayout allowedRole="operator"><BagManagement /></ProtectedLayout>} />
 
       {/* Sustainability Routes */}
@@ -108,15 +119,17 @@ const AppRoutes = () => {
       <Route path="/sustainability/approval" element={<ProtectedLayout allowedRole="sustainability"><LotApproval /></ProtectedLayout>} />
 
       {/* Finance Routes */}
-      <Route path="/finance" element={<ProtectedLayout allowedRole="finance"><ExpenseManagement /></ProtectedLayout>} />
-      <Route path="/finance/labor" element={<ProtectedLayout allowedRole="finance"><LaborCosts /></ProtectedLayout>} />
-      <Route path="/finance/assets" element={<ProtectedLayout allowedRole="finance"><AssetManagement /></ProtectedLayout>} />
-      <Route path="/finance/revenue" element={<ProtectedLayout allowedRole="finance"><RevenueManagement /></ProtectedLayout>} />
-      <Route path="/finance/statements" element={<ProtectedLayout allowedRole="finance"><FinancialStatements /></ProtectedLayout>} />
-      <Route path="/finance/kpis" element={<ProtectedLayout allowedRole="finance"><KPIs /></ProtectedLayout>} />
+      <Route path="/finance" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><ExpenseManagement /></ProtectedLayout>} />
+      <Route path="/finance/labor" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><LaborCosts /></ProtectedLayout>} />
+      <Route path="/finance/assets" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><AssetManagement /></ProtectedLayout>} />
+      <Route path="/finance/revenue" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><RevenueManagement /></ProtectedLayout>} />
+      <Route path="/finance/statements" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><FinancialStatements /></ProtectedLayout>} />
+      <Route path="/finance/kpis" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><KPIs /></ProtectedLayout>} />
+      <Route path="/finance/financing-sources" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><FinancingSourceManagement /></ProtectedLayout>} />
+      <Route path="/finance/loans" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><LoanManagement /></ProtectedLayout>} />
 
       {/* Default redirect */}
-      <Route path="*" element={<Navigate to={`/${user?.role}`} replace />} />
+      <Route path="*" element={<Navigate to={`/${user?.role === 'FINANCE' ? 'finance' : user?.role?.toLowerCase()}`} replace />} />
     </Routes>
   );
 };

@@ -8,6 +8,12 @@ const QualityChecks = () => {
     const [selectedLot, setSelectedLot] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    
+    // Debug logging
+    useEffect(() => {
+        console.log('QualityChecks - lots:', lots);
+        console.log('QualityChecks - loading:', loading);
+    }, [lots, loading]);
     const [formData, setFormData] = useState({
         lot_id: '',
         fermentationDuration: '',
@@ -69,32 +75,40 @@ const QualityChecks = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }
+    
 
     return (
-        <div>
+        <div className="quality-checks">
             <div className="page-header">
                 <h1 className="page-title">Quality Checks (CPQI)</h1>
                 <p className="page-description">Daily quality assurance</p>
             </div>
 
-            <div className="content-card" style={{ marginBottom: 'var(--spacing-xl)' }}>
-                <div className="card-header">
-                    <h2 className="card-title">New Quality Check</h2>
+            {loading?.lots ? (
+                <div className="page-loading">
+                    <div className="loading-spinner"></div>
+                    <p>Loading lots...</p>
                 </div>
+            ) : (
+                <div>
+                    <div className="content-card" style={{ marginBottom: 'var(--spacing-xl)' }}>
+                        <div className="card-header">
+                            <h2 className="card-title">New Quality Check</h2>
+                        </div>
 
-                {error && (
-                    <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
-                        {error}
-                    </div>
-                )}
+                        {error && (
+                            <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
+                                {error}
+                            </div>
+                        )}
 
-                <form onSubmit={handleSubmit}>
+                        <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label className="form-label required">Select Lot</label>
                         <select
                             className="form-select"
-                            value={formData.lot_id}
+                            value={selectedLot}
                             onChange={(e) => {
                                 setFormData({ ...formData, lot_id: e.target.value });
                                 setSelectedLot(e.target.value);
@@ -103,11 +117,15 @@ const QualityChecks = () => {
                             disabled={isSubmitting}
                         >
                             <option value="">-- Select Lot --</option>
-                            {lots.map(lot => (
-                                <option key={lot.id} value={lot.id}>
-                                    {lot.lotName || lot.id} - {lot.processingMethod} ({lot.status})
-                                </option>
-                            ))}
+                            {lots && lots.length > 0 ? (
+                                lots.map(lot => (
+                                    <option key={lot.id} value={lot.id}>
+                                        {lot.lotName || lot.id} - {lot.processingMethod} ({lot.status})
+                                    </option>
+                                ))
+                            ) : (
+                                <option value="" disabled>No lots available</option>
+                            )}
                         </select>
                     </div>
 
@@ -201,7 +219,9 @@ const QualityChecks = () => {
                         </table>
                     </div>
                 )}
-            </div>
+                </div>
+                </div>
+            )}
         </div>
     );
 };

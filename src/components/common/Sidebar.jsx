@@ -26,6 +26,8 @@ const Sidebar = () => {
             operator: [
                 { path: '/operator', label: 'Lot Processing', icon: 'grid' },
                 { path: '/operator/logs', label: 'Processing Logs', icon: 'report' },
+                { path: '/operator/drying-monitor', label: 'Drying Monitor', icon: 'lot' },
+                { path: '/operator/drying-logs', label: 'Drying Records', icon: 'report' },
                 { path: '/operator/bags', label: 'Bag Management', icon: 'lot' },
             ],
             sustainability: [
@@ -38,9 +40,11 @@ const Sidebar = () => {
                 { path: '/finance/labor', label: 'Labor Costs', icon: 'users' },
                 { path: '/finance/assets', label: 'Asset Management', icon: 'lot' },
                 { path: '/finance/revenue', label: 'Revenue', icon: 'pricing' },
-                { path: '/finance/statements', label: 'Financial Statements', icon: 'report' },
+                { path: '/finance/statements', label: 'Finance Statements', icon: 'report' },
                 { path: '/finance/reports', label: 'Financial Reports', icon: 'analytics' },
                 { path: '/finance/kpis', label: 'KPIs & Alerts', icon: 'calendar' },
+                { path: '/finance/financing-sources', label: 'Financing Sources', icon: 'pricing' },
+                { path: '/finance/loans', label: 'Loan Management', icon: 'credit' },
             ],
         };
 

@@ -1,36 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './PricingConfig.css';
+import { pricingAPI } from '../../services/pricingAPI';
 import priceImage from '../../assets/price-image.png';
 
 const PricingConfig = () => {
-    const [unitPrice, setUnitPrice] = useState(350);
+    const [currentPricing, setCurrentPricing] = useState(null);
+    const [priceHistory, setPriceHistory] = useState([]);
+    const [newPrice, setNewPrice] = useState('');
+    const [newSeason, setNewSeason] = useState('');
+    const [effectiveDate, setEffectiveDate] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    // Mock data for the chart and table matching the design
-    const priceHistory = [
-        { season: '2024A', price: 320, created: '2025-04-15' },
-        { season: '2025B', price: 350, created: '2025-04-15' },
-        { season: '2026A', price: 410, created: '2025-04-15' },
-        { season: '2025B', price: 415, created: '2025-04-15' },
-        { season: '2026B', price: 450, created: '2025-04-15' },
-    ];
+    // Load current pricing and history
+    useEffect(() => {
+        const loadPricingData = async () => {
+            try {
+                // Load current pricing
+                const currentRes = await pricingAPI.getCurrent();
+                if (currentRes.data.success) {
+                    setCurrentPricing(currentRes.data.data);
+                    setNewPrice(currentRes.data.data.unit_price.toString());
+                    
+                    // Auto-set season if available
+                    if (currentRes.data.data.season_name) {
+                        setNewSeason(currentRes.data.data.season_name);
+                    }
+                }
 
-    const chartData = [
-        { label: '2024A', value: 320, x: 0, y: 320 },
-        { label: '2025B', value: 410, x: 33, y: 410 },
-        { label: '2026A', value: 410, x: 66, y: 410 },
-        { label: '2026B', value: 450, x: 100, y: 450 },
-    ];
+                // Load pricing history
+                const historyRes = await pricingAPI.getHistory();
+                if (historyRes.data.success) {
+                    setPriceHistory(historyRes.data.data);
+                }
+            } catch (error) {
+                console.error('Error loading pricing data:', error);
+            }
+        };
 
-    const handleUpdatePrice = (e) => {
+        loadPricingData();
+    }, []);
+
+    const handleUpdatePrice = async (e) => {
         e.preventDefault();
-        alert(`Price updated to RWF ${unitPrice} per kg`);
+
+        if (!newPrice || !newSeason) {
+            alert('Please enter both price and season name');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await pricingAPI.create({
+                season_name: newSeason,
+                unit_price: parseFloat(newPrice),
+                effective_date: effectiveDate || new Date().toISOString().split('T')[0]
+            });
+
+            // Refresh data
+            const currentRes = await pricingAPI.getCurrent();
+            if (currentRes.data.success) {
+                setCurrentPricing(currentRes.data.data);
+            }
+
+            const historyRes = await pricingAPI.getHistory();
+            if (historyRes.data.success) {
+                setPriceHistory(historyRes.data.data);
+            }
+
+            // Reset form
+            setNewPrice('');
+            setNewSeason('');
+            setEffectiveDate('');
+
+            alert(`Price updated to RWF ${newPrice} per kg for season ${newSeason}`);
+        } catch (error) {
+            console.error('Error updating price:', error);
+            alert('Failed to update price');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
     };
 
     return (
         <div className="pricing-config">
             <div className="page-header">
                 <h1 className="page-title">Pricing Configuration</h1>
-                <p className="page-description">See history of coffee price per season and update price in current season</p>
+                <p className="page-description">Manage coffee pricing by season and update current season prices</p>
             </div>
 
             <div className="pricing-layout">
@@ -40,14 +105,24 @@ const PricingConfig = () => {
                     <div className="pricing-card">
                         <h3>Current Price</h3>
                         <form onSubmit={handleUpdatePrice}>
+                            <label className="unit-label">Season Name</label>
+                            <div className="price-input-container">
+                                <input
+                                    type="text"
+                                    className="price-input"
+                                    value={newSeason}
+                                    onChange={(e) => setNewSeason(e.target.value)}
+                                    placeholder={currentPricing?.season_name || "e.g., 2025A"}
+                                />
+                            </div>
                             <label className="unit-label">Unit Price RWF/Kg</label>
                             <div className="price-input-container">
                                 <input
                                     type="number"
                                     className="price-input"
-                                    value={unitPrice}
-                                    onChange={(e) => setUnitPrice(e.target.value)}
-                                    placeholder="350"
+                                    value={newPrice}
+                                    onChange={(e) => setNewPrice(e.target.value)}
+                                    placeholder={currentPricing?.unit_price || "350"}
                                 />
                             </div>
                             <button type="submit" className="btn-update-price">

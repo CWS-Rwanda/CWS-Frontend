@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { storageAPI } from '../../services/api';
 import Modal from '../../components/common/Modal';
 
 const BagManagement = () => {
-    const { lots, bags, fetchStorageBags, loading } = useData();
+    const { lots, bags, fetchStorageBags, loading, fetchLots } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
@@ -14,6 +14,18 @@ const BagManagement = () => {
         weight_kg: '',
         moisture: '',
     });
+
+    // Fetch lots when component loads
+    useEffect(() => {
+        fetchLots();
+        console.log('BagManagement - fetching lots...');
+    }, []);
+
+    // Debug logging
+    useEffect(() => {
+        console.log('BagManagement - lots:', lots);
+        console.log('BagManagement - loading:', loading);
+    }, [lots, loading]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -39,6 +51,7 @@ const BagManagement = () => {
             setIsModalOpen(false);
             setFormData({ lot_id: '', bag_code: '', weight_kg: '', moisture: '' });
             await fetchStorageBags();
+            await fetchLots(); // Refresh lots data
         } catch (err) {
             console.error('Error creating storage bag:', err);
             setError(err.message || 'Failed to create storage bag. Please try again.');
@@ -150,11 +163,15 @@ const BagManagement = () => {
                             disabled={isSubmitting}
                         >
                             <option value="">-- Select Lot --</option>
-                            {lots.filter(l => l.status === 'COMPLETED' || l.status === 'completed' || l.status === 'IN_PROCESS' || l.status === 'in process').map(lot => (
-                                <option key={lot.id} value={lot.id}>
-                                    {lot.lotName || lot.id} - {lot.processingMethod}
-                                </option>
-                            ))}
+                            {lots && lots.length > 0 ? (
+                                lots.map(lot => (
+                                    <option key={lot.id} value={lot.id}>
+                                        {lot.lotName || lot.id} - {lot.processingMethod || 'N/A'} ({lot.status || 'N/A'})
+                                    </option>
+                                ))
+                            ) : (
+                                <option value="" disabled>No lots available</option>
+                            )}
                         </select>
                     </div>
 

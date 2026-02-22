@@ -33,6 +33,11 @@ const SeasonManagement = () => {
         }
     }, []);
 
+    // Load seasons when component mounts
+    useEffect(() => {
+        fetchSeasons();
+    }, []);
+
     // Transform backend season to frontend format
     const transformSeason = (season) => {
         // Calculate revenue for this season

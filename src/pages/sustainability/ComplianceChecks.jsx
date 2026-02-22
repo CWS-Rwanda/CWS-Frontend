@@ -8,6 +8,12 @@ const ComplianceChecks = () => {
     const [selectedLot, setSelectedLot] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    
+    // Debug logging
+    useEffect(() => {
+        console.log('ComplianceChecks - lots:', lots);
+        console.log('ComplianceChecks - loading:', loading);
+    }, [lots, loading]);
     const [formData, setFormData] = useState({
         lot_id: '',
         ppeUsage: 'compliant',
@@ -104,8 +110,8 @@ const ComplianceChecks = () => {
                     <div className="form-group">
                         <label className="form-label required">Select Lot</label>
                         <select
-                            className="form-select"
-                            value={formData.lot_id}
+                            className="form-input"
+                            value={selectedLot}
                             onChange={(e) => {
                                 setFormData({ ...formData, lot_id: e.target.value });
                                 setSelectedLot(e.target.value);
@@ -114,11 +120,15 @@ const ComplianceChecks = () => {
                             disabled={isSubmitting}
                         >
                             <option value="">-- Select Lot --</option>
-                            {lots.map(lot => (
-                                <option key={lot.id} value={lot.id}>
-                                    {lot.lotName || lot.id} - {lot.processingMethod} ({lot.status})
-                                </option>
-                            ))}
+                            {lots && lots.length > 0 ? (
+                                lots.map(lot => (
+                                    <option key={lot.id} value={lot.id}>
+                                        {lot.lotName || lot.id} - {lot.processingMethod} ({lot.status})
+                                    </option>
+                                ))
+                            ) : (
+                                <option value="" disabled>No lots available</option>
+                            )}
                         </select>
                     </div>
 

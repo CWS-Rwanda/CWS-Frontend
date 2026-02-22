@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { deliveriesAPI } from '../../services/api';
 import Modal from '../../components/common/Modal';
 import DeliveryReceipt from '../../components/receipts/DeliveryReceipt';
+import { pricingAPI } from '../../services/pricingAPI';
 
 const DeliveryEntry = () => {
     const { farmers, lots, seasons, fetchDeliveries } = useData();
@@ -13,13 +14,32 @@ const DeliveryEntry = () => {
         weight: '',
         lotId: '',
     });
+    const [currentPricing, setCurrentPricing] = useState(null);
     const [showReceipt, setShowReceipt] = useState(false);
     const [lastDelivery, setLastDelivery] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
 
     const currentSeason = seasons.find(s => s.active === true || s.status === 'ACTIVE' || s.status === 'active');
-    const unitPrice = 350; // From pricing config - TODO: Get from pricing config API
+
+    // Load current pricing
+    useEffect(() => {
+        const loadPricing = async () => {
+            try {
+                const response = await pricingAPI.getCurrent();
+                if (response.data.success) {
+                    setCurrentPricing(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error loading pricing:', error);
+                // Fallback to default price if API fails
+                setCurrentPricing({ unit_price: 350 });
+            }
+        };
+        loadPricing();
+    }, []);
+
+    const unitPrice = currentPricing?.unit_price || 350;
 
 
         const handleDownloadPDF = () => {

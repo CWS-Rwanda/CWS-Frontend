@@ -6,23 +6,135 @@ import { jsPDF } from 'jspdf';
 import './Reports.css';
 
 const Reports = () => {
-    const { seasons, deliveries, expenses, laborCosts, farmers, loading } = useData();
+    const { seasons, expenses, loading } = useData();
     const [isGenerating, setIsGenerating] = useState(false);
     const [currentSeason, setCurrentSeason] = useState(null);
+    const [incomeData, setIncomeData] = useState(null);
+    const [cashFlowData, setCashFlowData] = useState(null);
+    const [auditStats, setAuditStats] = useState(null);
+    const [auditLogs, setAuditLogs] = useState([]);
+    const [reportsLoading, setReportsLoading] = useState(false);
 
     useEffect(() => {
         const activeSeason = seasons.find(s => s.active === true || s.status === 'ACTIVE' || s.status === 'active');
         setCurrentSeason(activeSeason || seasons[0] || null);
+        console.log('Reports - seasons:', seasons);
+        console.log('Reports - activeSeason:', activeSeason);
     }, [seasons]);
 
-    // Reports data with dynamic titles
+    useEffect(() => {
+        if (currentSeason) {
+            console.log('Reports - currentSeason set, loading data:', currentSeason);
+            loadReportData();
+        } else {
+            console.log('Reports - no currentSeason available');
+            setReportsLoading(false);
+        }
+    }, [currentSeason]);
+
+    const loadReportData = async () => {
+        if (!currentSeason) return;
+        
+        console.log('Reports - loadReportData starting for season:', currentSeason.id);
+        setReportsLoading(true);
+        try {
+            // Load income statement data
+            try {
+                const incomeRes = await financeSummariesAPI.getIncomeStatement({ season_id: currentSeason.id });
+                console.log('Reports - income statement response:', incomeRes);
+                console.log('Reports - income statement data structure:', incomeRes.data);
+                console.log('Reports - income statement success check:', incomeRes.data?.success);
+                if (incomeRes.data?.success) {
+                    setIncomeData(incomeRes.data.data);
+                    console.log('Reports - income data set:', incomeRes.data.data);
+                } else {
+                    console.warn('Reports - income statement not successful:', incomeRes.data);
+                    // Try to set data anyway if response exists
+                    if (incomeRes.data) {
+                        setIncomeData(incomeRes.data);
+                        console.log('Reports - income data set from direct response:', incomeRes.data);
+                    }
+                }
+            } catch (incomeError) {
+                console.error('Reports - income statement error:', incomeError);
+            }
+
+            // Load cash flow data
+            try {
+                const cashFlowRes = await financeSummariesAPI.getCashFlow({ season_id: currentSeason.id });
+                console.log('Reports - cash flow response:', cashFlowRes);
+                console.log('Reports - cash flow data structure:', cashFlowRes.data);
+                console.log('Reports - cash flow success check:', cashFlowRes.data?.success);
+                if (cashFlowRes.data?.success) {
+                    setCashFlowData(cashFlowRes.data.data);
+                    console.log('Reports - cash flow data set:', cashFlowRes.data.data);
+                } else {
+                    console.warn('Reports - cash flow not successful:', cashFlowRes.data);
+                    // Try to set data anyway if response exists
+                    if (cashFlowRes.data) {
+                        setCashFlowData(cashFlowRes.data);
+                        console.log('Reports - cash flow data set from direct response:', cashFlowRes.data);
+                    }
+                }
+            } catch (cashFlowError) {
+                console.error('Reports - cash flow error:', cashFlowError);
+            }
+
+            // Load audit log stats
+            try {
+                const auditStatsRes = await auditLogsAPI.getStats();
+                console.log('Reports - audit stats response:', auditStatsRes);
+                console.log('Reports - audit stats data structure:', auditStatsRes.data);
+                console.log('Reports - audit stats success check:', auditStatsRes.data?.success);
+                if (auditStatsRes.data?.success) {
+                    setAuditStats(auditStatsRes.data.data);
+                    console.log('Reports - audit stats data set:', auditStatsRes.data.data);
+                } else {
+                    console.warn('Reports - audit stats not successful:', auditStatsRes.data);
+                    // Try to set data anyway if response exists
+                    if (auditStatsRes.data) {
+                        setAuditStats(auditStatsRes.data);
+                        console.log('Reports - audit stats data set from direct response:', auditStatsRes.data);
+                    }
+                }
+            } catch (auditStatsError) {
+                console.error('Reports - audit stats error:', auditStatsError);
+            }
+
+            // Load recent audit logs
+            try {
+                const auditLogsRes = await auditLogsAPI.getAll({ limit: 100 });
+                console.log('Reports - audit logs response:', auditLogsRes);
+                console.log('Reports - audit logs data structure:', auditLogsRes.data);
+                console.log('Reports - audit logs success check:', auditLogsRes.data?.success);
+                if (auditLogsRes.data?.success) {
+                    setAuditLogs(auditLogsRes.data.data || []);
+                    console.log('Reports - audit logs data set:', auditLogsRes.data.data);
+                } else {
+                    console.warn('Reports - audit logs not successful:', auditLogsRes.data);
+                    // Try to set data anyway if response exists
+                    if (auditLogsRes.data) {
+                        setAuditLogs(auditLogsRes.data.data || auditLogsRes.data || []);
+                        console.log('Reports - audit logs data set from direct response:', auditLogsRes.data.data || auditLogsRes.data);
+                    }
+                }
+            } catch (auditLogsError) {
+                console.error('Reports - audit logs error:', auditLogsError);
+            }
+        } catch (error) {
+            console.error('Reports - general error loading report data:', error);
+        } finally {
+            console.log('Reports - loadReportData completed, setting loading to false');
+            setReportsLoading(false);
+        }
+    };
+
+    // Reports that can be integrated with backend
     const reports = [
         {
             id: 1,
             title: currentSeason ? `Income Statement - ${currentSeason.name}` : 'Income Statement',
             type: 'income-statement',
-            uploadedBy: 'Furaha Divin',
-            timeAgo: '2 days ago',
             accent: 'brown',
             iconBg: 'brown',
             iconColor: 'brown'
@@ -31,8 +143,6 @@ const Reports = () => {
             id: 2,
             title: currentSeason ? `Expense Report - ${currentSeason.name}` : 'Expense Report',
             type: 'expense-report',
-            uploadedBy: 'Nshuti Angelo',
-            timeAgo: '5 days ago',
             accent: 'purple',
             iconBg: 'purple',
             iconColor: 'purple'
@@ -41,41 +151,17 @@ const Reports = () => {
             id: 3,
             title: currentSeason ? `Cash Flow Statement - ${currentSeason.name}` : 'Cash Flow Statement',
             type: 'cash-flow',
-            uploadedBy: 'Nshuti Christian',
-            timeAgo: '12 days ago',
             accent: 'orange',
             iconBg: 'orange',
             iconColor: 'orange'
         },
         {
             id: 4,
-            title: `Operational Budget - 2026A`,
-            type: 'budget',
-            uploadedBy: 'Keza Marie',
-            timeAgo: '2 weeks ago',
-            accent: 'green',
-            iconBg: 'green',
-            iconColor: 'green'
-        },
-        {
-            id: 5,
-            title: `Audit Log Summary - Q1`,
+            title: `Audit Log Summary`,
             type: 'audit-log',
-            uploadedBy: 'System Admin',
-            timeAgo: '3 weeks ago',
             accent: 'blue',
             iconBg: 'blue',
             iconColor: 'blue'
-        },
-        {
-            id: 6,
-            title: `Sustainability Impact Report`,
-            type: 'sustainability',
-            uploadedBy: 'Gasana Jean',
-            timeAgo: '1 month ago',
-            accent: 'teal',
-            iconBg: 'teal',
-            iconColor: 'teal'
         }
     ];
 
@@ -104,14 +190,8 @@ const Reports = () => {
             case 'cash-flow':
                 content = generateCashFlowContent();
                 break;
-            case 'budget':
-                content = generateBudgetContent();
-                break;
             case 'audit-log':
                 content = generateAuditLogContent();
-                break;
-            case 'sustainability':
-                content = generateSustainabilityContent();
                 break;
             default:
                 content = '<p>Report not available</p>';
@@ -122,14 +202,13 @@ const Reports = () => {
     };
 
     const generateIncomeStatementContent = () => {
-        const seasonDeliveries = currentSeason ? deliveries.filter(d => d.season_id === currentSeason.id) : deliveries;
-        const seasonExpenses = currentSeason ? expenses.filter(e => e.season_id === currentSeason.id) : expenses;
-        const seasonLabor = currentSeason ? laborCosts.filter(l => l.season_id === currentSeason.id) : laborCosts;
+        if (!incomeData) {
+            return '<p>Loading income statement data...</p>';
+        }
 
-        const totalRevenue = seasonDeliveries.reduce((sum, d) => sum + parseFloat(d.totalAmount || 0), 0);
-        const totalExpenses = seasonExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-        const totalLabor = seasonLabor.reduce((sum, l) => sum + parseFloat(l.total_amount || l.totalCost || 0), 0);
-        const netIncome = totalRevenue - totalExpenses - totalLabor;
+        const totalRevenue = incomeData.totalRevenue || 0;
+        const totalExpenses = incomeData.totalExpenses || 0;
+        const netIncome = incomeData.netIncome || 0;
 
         return `
             <div style="text-align: center; margin-bottom: 30px;">
@@ -146,16 +225,12 @@ const Reports = () => {
                     <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF ${totalRevenue.toLocaleString()}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 12px 8px; padding-left: 30px; border-bottom: 1px solid #ddd;">Cherry Purchases</td>
+                    <td style="padding: 12px 8px; padding-left: 30px; border-bottom: 1px solid #ddd;">Sales Revenue</td>
                     <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF ${totalRevenue.toLocaleString()}</td>
                 </tr>
                 <tr style="background-color: #f8f9fa; font-weight: bold;">
                     <td style="padding: 12px 8px; border-bottom: 1px solid #ddd;">Gross Profit</td>
-                    <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF 0</td>
-                </tr>
-                <tr>
-                    <td style="padding: 12px 8px; padding-left: 30px; border-bottom: 1px solid #ddd;">Labor Costs</td>
-                    <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF ${totalLabor.toLocaleString()}</td>
+                    <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF ${totalRevenue.toLocaleString()}</td>
                 </tr>
                 <tr>
                     <td style="padding: 12px 8px; padding-left: 30px; border-bottom: 1px solid #ddd;">Operating Expenses</td>
@@ -175,17 +250,18 @@ const Reports = () => {
         // Group expenses by category
         const expensesByCategory = {};
         seasonExpenses.forEach(expense => {
-            if (!expensesByCategory[expense.category]) {
-                expensesByCategory[expense.category] = {
-                    category: expense.category,
+            const category = expense.category || 'Uncategorized';
+            if (!expensesByCategory[category]) {
+                expensesByCategory[category] = {
+                    category: category,
                     total: 0,
                     count: 0,
                     items: []
                 };
             }
-            expensesByCategory[expense.category].total += parseFloat(expense.amount || 0);
-            expensesByCategory[expense.category].count++;
-            expensesByCategory[expense.category].items.push(expense);
+            expensesByCategory[category].total += parseFloat(expense.amount || 0);
+            expensesByCategory[category].count++;
+            expensesByCategory[category].items.push(expense);
         });
 
         const totalExpenses = Object.values(expensesByCategory).reduce((sum, cat) => sum + cat.total, 0);
@@ -197,7 +273,7 @@ const Reports = () => {
                     <td style="padding: 10px 8px; border-bottom: 1px solid #ddd;">${category.category}</td>
                     <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">${category.count}</td>
                     <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF ${category.total.toLocaleString()}</td>
-                    <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF ${(category.total / category.count).toLocaleString()}</td>
+                    <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF ${category.count > 0 ? (category.total / category.count).toLocaleString() : 0}</td>
                 </tr>
             `;
         });
@@ -228,7 +304,7 @@ const Reports = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    ${tableRows}
+                    ${tableRows || '<tr><td colspan="4" style="padding: 20px; text-align: center;">No expenses found</td></tr>'}
                     <tr style="background-color: #e9ecef; font-weight: bold; font-size: 16px;">
                         <td style="padding: 15px 8px;">Total</td>
                         <td style="padding: 15px 8px; text-align: right;">${seasonExpenses.length}</td>
@@ -241,14 +317,13 @@ const Reports = () => {
     };
 
     const generateCashFlowContent = () => {
-        const seasonDeliveries = currentSeason ? deliveries.filter(d => d.season_id === currentSeason.id) : deliveries;
-        const seasonExpenses = currentSeason ? expenses.filter(e => e.season_id === currentSeason.id) : expenses;
-        const seasonLabor = currentSeason ? laborCosts.filter(l => l.season_id === currentSeason.id) : laborCosts;
+        if (!cashFlowData) {
+            return '<p>Loading cash flow data...</p>';
+        }
 
-        const cashInflows = seasonDeliveries.reduce((sum, d) => sum + parseFloat(d.totalAmount || 0), 0);
-        const cashOutflows = seasonExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0) + 
-                              seasonLabor.reduce((sum, l) => sum + parseFloat(l.total_amount || l.totalCost || 0), 0);
-        const netCashFlow = cashInflows - cashOutflows;
+        const cashInflows = cashFlowData.cashInflows || 0;
+        const cashOutflows = cashFlowData.cashOutflows || 0;
+        const netCashFlow = cashFlowData.netCashFlow || 0;
 
         return `
             <div style="text-align: center; margin-bottom: 30px;">
@@ -280,60 +355,39 @@ const Reports = () => {
         `;
     };
 
-    const generateBudgetContent = () => {
-        return `
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="margin: 0; color: #2c3e50; font-size: 28px; font-weight: bold;">Operational Budget</h1>
-                <p style="margin: 10px 0 0 0; color: #666; font-size: 16px;">2026A Season</p>
-                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Generated on ${new Date().toLocaleDateString()}</p>
-            </div>
-            
-            <div style="border-bottom: 2px solid #e0e0e0; margin: 30px 0;"></div>
-            
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background-color: #f8f9fa; font-weight: bold;">
-                        <th style="padding: 12px 8px; text-align: left; border-bottom: 2px solid #ddd;">Category</th>
-                        <th style="padding: 12px 8px; text-align: right; border-bottom: 2px solid #ddd;">Budgeted</th>
-                        <th style="padding: 12px 8px; text-align: right; border-bottom: 2px solid #ddd;">Actual</th>
-                        <th style="padding: 12px 8px; text-align: right; border-bottom: 2px solid #ddd;">Variance</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="padding: 10px 8px; border-bottom: 1px solid #ddd;">Cherry Purchases</td>
-                        <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF 50,000,000</td>
-                        <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF 45,000,000</td>
-                        <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd; color: #28a745;">RWF 5,000,000</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px 8px; border-bottom: 1px solid #ddd;">Labor Costs</td>
-                        <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF 15,000,000</td>
-                        <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF 16,500,000</td>
-                        <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd; color: #dc3545;">(RWF 1,500,000)</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px 8px; border-bottom: 1px solid #ddd;">Operating Expenses</td>
-                        <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF 10,000,000</td>
-                        <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd;">RWF 9,200,000</td>
-                        <td style="padding: 10px 8px; text-align: right; border-bottom: 1px solid #ddd; color: #28a745;">RWF 800,000</td>
-                    </tr>
-                    <tr style="background-color: #e9ecef; font-weight: bold; font-size: 16px;">
-                        <td style="padding: 15px 8px;">Total</td>
-                        <td style="padding: 15px 8px; text-align: right;">RWF 75,000,000</td>
-                        <td style="padding: 15px 8px; text-align: right;">RWF 70,700,000</td>
-                        <td style="padding: 15px 8px; text-align: right; color: #28a745;">RWF 4,300,000</td>
-                    </tr>
-                </tbody>
-            </table>
-        `;
-    };
-
     const generateAuditLogContent = () => {
+        if (!auditStats && auditLogs.length === 0) {
+            return '<p>Loading audit log data...</p>';
+        }
+
+        // Count actions by type
+        const actionCounts = {};
+        auditLogs.forEach(log => {
+            const action = log.action || 'UNKNOWN';
+            actionCounts[action] = (actionCounts[action] || 0) + 1;
+        });
+
+        const totalActivities = auditLogs.length;
+        const uniqueUsers = new Set(auditLogs.map(log => log.name || log.user?.name).filter(Boolean)).size;
+
+        let actionRows = '';
+        Object.entries(actionCounts)
+            .sort((a, b) => b[1] - a[1])
+            .forEach(([action, count]) => {
+                const percentage = totalActivities > 0 ? ((count / totalActivities) * 100).toFixed(1) : 0;
+                actionRows += `
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${action}</td>
+                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${count}</td>
+                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${percentage}%</td>
+                    </tr>
+                `;
+            });
+
         return `
             <div style="text-align: center; margin-bottom: 30px;">
                 <h1 style="margin: 0; color: #2c3e50; font-size: 28px; font-weight: bold;">Audit Log Summary</h1>
-                <p style="margin: 10px 0 0 0; color: #666; font-size: 16px;">Q1 2026</p>
+                <p style="margin: 10px 0 0 0; color: #666; font-size: 16px;">System Activity Report</p>
                 <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Generated on ${new Date().toLocaleDateString()}</p>
             </div>
             
@@ -344,24 +398,16 @@ const Reports = () => {
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Total Activities:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">1,247</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>User Actions:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">892</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>System Actions:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">355</td>
+                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${totalActivities}</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Active Users:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">12</td>
+                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${uniqueUsers}</td>
                     </tr>
                 </table>
             </div>
             
-            <h3 style="color: #2c3e50; margin-bottom: 10px;">Top Activities by Type</h3>
+            <h3 style="color: #2c3e50; margin-bottom: 10px;">Activities by Type</h3>
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background-color: #f8f9fa; font-weight: bold;">
@@ -371,102 +417,9 @@ const Reports = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">CREATE</td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">423</td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">33.9%</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">UPDATE</td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">356</td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">28.5%</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">DELETE</td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">113</td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">9.1%</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">LOGIN</td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">355</td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">28.5%</td>
-                    </tr>
+                    ${actionRows || '<tr><td colspan="3" style="padding: 20px; text-align: center;">No audit logs found</td></tr>'}
                 </tbody>
             </table>
-        `;
-    };
-
-    const generateSustainabilityContent = () => {
-        return `
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="margin: 0; color: #2c3e50; font-size: 28px; font-weight: bold;">Sustainability Impact Report</h1>
-                <p style="margin: 10px 0 0 0; color: #666; font-size: 16px;">2025-2026 Season</p>
-                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Generated on ${new Date().toLocaleDateString()}</p>
-            </div>
-            
-            <div style="border-bottom: 2px solid #e0e0e0; margin: 30px 0;"></div>
-            
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #2c3e50; margin-bottom: 10px;">Environmental Impact</h3>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Total Coffee Processed:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">125,000 kg</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Water Usage:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">375,000 liters</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Water Efficiency:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">3.0 L/kg</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Carbon Footprint:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">2.1 kg CO2e/kg</td>
-                    </tr>
-                </table>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #2c3e50; margin-bottom: 10px;">Social Impact</h3>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Farmers Supported:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">247</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Average Price Premium:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">15% above market</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Labor Hours Created:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">18,500</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Training Programs:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">12 sessions</td>
-                    </tr>
-                </table>
-            </div>
-            
-            <div>
-                <h3 style="color: #2c3e50; margin-bottom: 10px;">Quality Metrics</h3>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Average Quality Score:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">85.2%</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Premium Grade Output:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">67%</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Certification Status:</strong></td>
-                        <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">Fair Trade, Organic</td>
-                    </tr>
-                </table>
-            </div>
         `;
     };
 
@@ -527,12 +480,37 @@ const Reports = () => {
         }
     };
 
+    // Debug loading states
+    useEffect(() => {
+        console.log('Reports - loading states debug:', {
+            loading: loading,
+            reportsLoading: reportsLoading,
+            shouldShowLoading: loading || reportsLoading
+        });
+    }, [loading, reportsLoading]);
+
+    if (reportsLoading) {
+        console.log('Reports - showing loading spinner because:', { loading, reportsLoading });
+        return (
+            <div className="page-loading">
+                <div className="loading-spinner"></div>
+                <p>Loading reports...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="reports-page">
             <div className="page-header">
                 <h1 className="page-title">Financial Reports</h1>
-                <p className="page-description">Generate and download financial statements of your Coffee Washing Station</p>
+                <p className="page-description">Generate and download financial statements and system reports</p>
             </div>
+
+            {!currentSeason && (
+                <div className="alert alert-warning" style={{ marginBottom: 'var(--spacing-lg)' }}>
+                    No active season selected. Reports will show data from all seasons.
+                </div>
+            )}
 
             <div className="reports-grid">
                 {reports.map((report) => (
@@ -540,7 +518,6 @@ const Reports = () => {
                         <div className="report-main-content">
                             <div className="report-content-wrapper">
                                 <div className={`report-icon-wrapper icon-bg-${report.iconBg}`}>
-                                    {/* Simple Document Icon */}
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                         <polyline points="14 2 14 8 20 8"></polyline>
@@ -554,13 +531,12 @@ const Reports = () => {
                                         {report.title}
                                     </h3>
                                     <div className="report-meta">
-                                        Uploaded by: {report.uploadedBy}
+                                        Generated from backend data
                                     </div>
                                 </div>
                             </div>
 
                             <div className="report-actions">
-                                <span className="report-time">Time: {report.timeAgo}</span>
                                 <button
                                     className={`btn-download-pdf btn-outline-${report.accent}`}
                                     onClick={() => handleDownload(report.title, report.type)}

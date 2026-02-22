@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
-import { adminUsersAPI, authAPI } from '../../services/api';
+import { adminUsersAPI, authAPI, farmersAPI } from '../../services/api';
 import Modal from '../../components/common/Modal';
 import './UserManagement.css';
 
 const UserManagement = () => {
     const { loading } = useData();
     const [users, setUsers] = useState([]);
+    const [farmers, setFarmers] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -28,9 +29,10 @@ const UserManagement = () => {
         role: 'RECEPTIONIST'
     });
 
-    // Fetch users on mount
+    // Fetch users and farmers on mount
     useEffect(() => {
         fetchUsers();
+        fetchFarmers();
     }, []);
 
     const fetchUsers = async () => {
@@ -50,21 +52,36 @@ const UserManagement = () => {
                 return;
             }
             
-            const transformed = usersData.map(user => ({
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role?.toLowerCase() || 'receptionist',
-                status: 'active' // Users don't have status field in backend, assume active
-            }));
+            setUsers(usersData);
+        } catch (err) {
+            console.error('Error fetching users:', err);
+            setError(err.message || 'Failed to fetch users. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchFarmers = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await farmersAPI.getAll();
+            console.log('Farmers API response:', response);
             
-            console.log('Transformed users:', transformed);
-            setUsers(transformed);
-        } catch (error) {
-            console.error('Error fetching users:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load users';
-            setError(errorMessage);
-            setUsers([]);
+            // Handle different response structures
+            const farmersData = response?.data?.data || response?.data || [];
+            
+            if (!Array.isArray(farmersData)) {
+                console.error('Farmers data is not an array:', farmersData);
+                setError('Invalid farmers data format');
+                setFarmers([]);
+                return;
+            }
+            
+            setFarmers(farmersData);
+        } catch (err) {
+            console.error('Error fetching farmers:', err);
+            setError(err.message || 'Failed to fetch farmers. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -98,7 +115,7 @@ const UserManagement = () => {
             const roleMap = {
                 'receptionist': 'RECEPTIONIST',
                 'operator': 'OPERATOR',
-                'finance': 'FINANCIAL',
+                'finance': 'FINANCE',
                 'admin': 'ADMIN'
             };
 
@@ -126,7 +143,7 @@ const UserManagement = () => {
         const roleMap = {
             'receptionist': 'RECEPTIONIST',
             'operator': 'OPERATOR',
-            'finance': 'FINANCIAL',
+            'finance': 'FINANCE',
             'admin': 'ADMIN'
         };
         setUpdateFormData({
@@ -189,8 +206,7 @@ const UserManagement = () => {
             admin: 'Admin',
             receptionist: 'Receptionist',
             operator: 'Operator',
-            finance: 'Financial',
-            financial: 'Financial',
+            finance: 'Finance',
             sustainability: 'Sustainability'
         };
         return roleMap[role?.toLowerCase()] || role;
@@ -200,7 +216,7 @@ const UserManagement = () => {
         const roleMap = {
             'RECEPTIONIST': 'receptionist',
             'OPERATOR': 'operator',
-            'FINANCIAL': 'finance',
+            'FINANCE': 'finance',
             'ADMIN': 'admin'
         };
         return roleMap[role] || role?.toLowerCase() || 'receptionist';
@@ -379,7 +395,7 @@ const UserManagement = () => {
                         >
                             <option value="RECEPTIONIST">Receptionist</option>
                             <option value="OPERATOR">Operator</option>
-                            <option value="FINANCIAL">Finance</option>
+                            <option value="FINANCE">Finance</option>
                             <option value="ADMIN">Admin</option>
                         </select>
                     </div>
@@ -437,7 +453,7 @@ const UserManagement = () => {
                         >
                             <option value="RECEPTIONIST">Receptionist</option>
                             <option value="OPERATOR">Operator</option>
-                            <option value="FINANCIAL">Finance</option>
+                            <option value="FINANCE">Finance</option>
                             <option value="ADMIN">Admin</option>
                         </select>
                     </div>
