@@ -15,7 +15,7 @@ const FarmerRegistry = () => {
     // Calculate from real data
     const totalFarmers = farmers.length;
     const activeFarmers = farmers.filter(f => f.active !== false).length;
-    
+
     // Calculate delivery increase (simplified - compare current season vs previous)
     const currentSeasonDeliveries = deliveries.filter(d => d.season).length;
     const deliveryIncrease = currentSeasonDeliveries > 0 ? "7%" : "0%"; // TODO: Calculate properly from previous season
@@ -53,7 +53,7 @@ const FarmerRegistry = () => {
                     <h1 className="page-title">Farmer Registry</h1>
                     <p className="page-description">Complete farmer details</p>
                 </div>
-                <button 
+                <button
                     className="btn btn-primary"
                     onClick={() => setIsAddModalOpen(true)}
                 >
@@ -104,7 +104,7 @@ const FarmerRegistry = () => {
                                         <tr key={farmer.id}>
                                             <td className="farmer-name">{farmer.name}</td>
                                             <td>{farmer.phone || 'N/A'}</td>
-                                            <td>{farmer.sector || 'N/A'}</td>
+                                            <td>{[farmer.sector, farmer.cell, farmer.village].filter(Boolean).join(', ') || 'N/A'}</td>
                                             <td>{totals.totalDeliveries}</td>
                                             <td>{totals.totalWeight.toFixed(2)}</td>
                                             <td>
@@ -124,12 +124,12 @@ const FarmerRegistry = () => {
                 )}
             </div>
 
-            <AddFarmerForm 
+            <AddFarmerForm
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onSuccess={handleAddFarmerSuccess}
             />
-            
+
             {selectedFarmer && (
                 <Modal isOpen={isViewModalOpen} onClose={handleCloseViewModal} title="Farmer Details">
                     <div className="farmer-details">
@@ -144,15 +144,21 @@ const FarmerRegistry = () => {
                         <div className="detail-row">
                             <span className="detail-label">Location:</span>
                             <span className="detail-value">
-                                {[selectedFarmer.sector, selectedFarmer.district, selectedFarmer.province]
+                                {[selectedFarmer.sector, selectedFarmer.cell, selectedFarmer.village]
                                     .filter(Boolean)
                                     .join(', ') || 'N/A'}
                             </span>
                         </div>
-                        {selectedFarmer.idNumber && (
+                        {selectedFarmer.id_card_number && (
                             <div className="detail-row">
                                 <span className="detail-label">ID/Passport:</span>
-                                <span className="detail-value">{selectedFarmer.idNumber}</span>
+                                <span className="detail-value">{selectedFarmer.id_card_number}</span>
+                            </div>
+                        )}
+                        {selectedFarmer.number_of_coffee_trees !== null && selectedFarmer.number_of_coffee_trees !== undefined && (
+                            <div className="detail-row">
+                                <span className="detail-label">Coffee Trees:</span>
+                                <span className="detail-value">{selectedFarmer.number_of_coffee_trees}</span>
                             </div>
                         )}
                     </div>
