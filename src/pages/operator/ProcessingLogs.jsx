@@ -10,6 +10,7 @@ const ProcessingLogs = () => {
     const [stage, setStage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
 
     const stages = ['received', 'pulped', 'fermented', 'washed', 'dried', 'stored'];
 
@@ -40,10 +41,15 @@ const ProcessingLogs = () => {
                 status: stage === 'stored' ? 'COMPLETED' : 'IN_PROCESS'
             });
 
-            alert(`Processing log added: ${selectedLot} - ${stage}`);
+            // Set success message instead of alert
+            const selectedLotName = lots.find(l => l.id === selectedLot)?.lotName || selectedLot;
+            setSuccessMessage(`Processing log created: ${selectedLotName} - ${stage.charAt(0).toUpperCase() + stage.slice(1)}`);
             setSelectedLot('');
             setStage('');
             await fetchLots();
+            
+            // Clear success message after 5 seconds
+            setTimeout(() => setSuccessMessage(null), 5000);
         } catch (err) {
             console.error('Error creating processing log:', err);
             setError(err.message || 'Failed to add processing log. Please try again.');
@@ -67,6 +73,12 @@ const ProcessingLogs = () => {
                 {error && (
                     <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
                         {error}
+                    </div>
+                )}
+                
+                {successMessage && (
+                    <div className="alert alert-success" style={{ marginBottom: 'var(--spacing-md)' }}>
+                        {successMessage}
                     </div>
                 )}
 
