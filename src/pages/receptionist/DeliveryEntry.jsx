@@ -7,7 +7,7 @@ import DeliveryReceipt from '../../components/receipts/DeliveryReceipt';
 import { pricingAPI } from '../../services/pricingAPI';
 
 const DeliveryEntry = () => {
-    const { farmers, lots, seasons, fetchDeliveries } = useData();
+    const { farmers, lots, seasons, fetchDeliveries, fetchFarmers, fetchLots, fetchSeasons, loading } = useData();
     const { user } = useAuth();
     const [formData, setFormData] = useState({
         farmerId: '',
@@ -22,6 +22,24 @@ const DeliveryEntry = () => {
     const receiptRef = React.useRef(null);
 
     const currentSeason = seasons.find(s => s.active === true || s.status === 'ACTIVE' || s.status === 'active');
+
+    // Fetch farmers, lots, and seasons data when component mounts if not already loaded
+    useEffect(() => {
+        // Fetch farmers if not already loaded
+        if (!loading.farmers && farmers.length === 0) {
+            fetchFarmers();
+        }
+        
+        // Fetch lots if not already loaded
+        if (!loading.lots && lots.length === 0) {
+            fetchLots();
+        }
+        
+        // Fetch seasons if not already loaded
+        if (!loading.seasons && seasons.length === 0) {
+            fetchSeasons();
+        }
+    }, [loading.farmers, farmers.length, loading.lots, lots.length, loading.seasons, seasons.length, fetchFarmers, fetchLots, fetchSeasons]);
 
 
     const handleDownloadPDF = () => {
@@ -99,16 +117,19 @@ const DeliveryEntry = () => {
             const deliveryData = response.data.data;
 
             // Transform for receipt display
+            const selectedLot = deliveryData.lot_id ? lots.find(l => l.id === deliveryData.lot_id) : null;
             const transformedDelivery = {
                 id: deliveryData.id,
                 farmerId: deliveryData.farmer_id,
                 farmerName: farmer.name,
+                farmerCategory: farmer.category || 'FARMER',
                 date: deliveryDate.split('T')[0],
                 time: new Date(deliveryDate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
                 weight,
                 unitPrice,
                 totalAmount,
                 lotId: deliveryData.lot_id,
+                lotName: selectedLot ? (selectedLot.lotName || selectedLot.id) : null,
                 paymentStatus: deliveryData.paid?.toLowerCase() || 'pending',
                 qualityScore: deliveryData.quality_score || 85,
                 operatorName: user?.name || 'Reception Staff',
