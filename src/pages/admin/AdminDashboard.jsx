@@ -18,18 +18,35 @@ const AdminDashboard = () => {
 
     // Calculate KPIs
     const totalRevenue = useMemo(() => {
-        return revenue.reduce((sum, r) => sum + r.totalRevenue, 0);
+        if (!revenue || revenue.length === 0) return 0;
+        return revenue.reduce((sum, r) => {
+            const amount = parseFloat(r.totalRevenue) || parseFloat(r.total_amount) || parseFloat(r.amount) || 0;
+            return sum + amount;
+        }, 0);
     }, [revenue]);
 
     const totalExpenses = useMemo(() => {
-        return expenses.reduce((sum, e) => sum + e.amount, 0);
+        if (!expenses || expenses.length === 0) return 0;
+        return expenses.reduce((sum, e) => {
+            const amount = parseFloat(e.amount) || parseFloat(e.total_amount) || 0;
+            return sum + amount;
+        }, 0);
     }, [expenses]);
 
     const totalLabor = useMemo(() => {
-        return laborCosts.reduce((sum, l) => sum + l.totalCost, 0);
+        if (!laborCosts || laborCosts.length === 0) return 0;
+        return laborCosts.reduce((sum, l) => {
+            const cost = parseFloat(l.totalCost) || parseFloat(l.total_cost) || parseFloat(l.amount) || 0;
+            return sum + cost;
+        }, 0);
     }, [laborCosts]);
 
-    const profitLoss = totalRevenue - totalExpenses - totalLabor;
+    const profitLoss = useMemo(() => {
+        const revenue = isNaN(totalRevenue) ? 0 : totalRevenue;
+        const expenses = isNaN(totalExpenses) ? 0 : totalExpenses;
+        const labor = isNaN(totalLabor) ? 0 : totalLabor;
+        return revenue - expenses - labor;
+    }, [totalRevenue, totalExpenses, totalLabor]);
 
     // Delivery pie chart data
     const deliveryData = useMemo(() => {
@@ -59,7 +76,10 @@ const AdminDashboard = () => {
             // Get revenue for this date
             const dayRevenue = revenue
                 .filter(r => (r.sale_date || r.date) === dateStr)
-                .reduce((sum, r) => sum + parseFloat(r.total_amount || r.totalRevenue || 0), 0);
+                .reduce((sum, r) => {
+                    const amount = parseFloat(r.total_amount) || parseFloat(r.totalRevenue) || parseFloat(r.amount) || 0;
+                    return sum + amount;
+                }, 0);
             
             last10Days.push({
                 date: dateStr,
