@@ -1,13 +1,20 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-    const { deliveries, lots, revenue, expenses, laborCosts } = useData();
+    const { deliveries, lots, revenue, expenses, laborCosts, loading, fetchLots } = useData();
     const [hoveredPoint, setHoveredPoint] = useState(null);
     const [hoveredPie, setHoveredPie] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
     const [pieTooltipPosition, setPieTooltipPosition] = useState({ x: 0, y: 0 });
+
+    // Refresh lots data when component mounts
+    useEffect(() => {
+        if (!loading.lots && lots.length === 0) {
+            fetchLots();
+        }
+    }, [loading.lots, lots.length, fetchLots]);
 
     // Calculate KPIs
     const totalRevenue = useMemo(() => {
@@ -153,7 +160,7 @@ const AdminDashboard = () => {
                                             </text>
                                         </g>
                                     );
-                                });
+                                })
                             })()}
                         </svg>
                         {hoveredPie && (
@@ -341,7 +348,7 @@ const AdminDashboard = () => {
                     <table className="lots-table">
                         <thead>
                             <tr>
-                                <th>LOT ID</th>
+                                <th>LOT NAME</th>
                                 <th>CREATED</th>
                                 <th>PROCESS TYPE</th>
                                 <th>GRADE</th>
@@ -351,7 +358,20 @@ const AdminDashboard = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {lots.slice(0, 5).map((lot) => {
+                            {loading.lots ? (
+                                <tr>
+                                    <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                                        Loading lots...
+                                    </td>
+                                </tr>
+                            ) : lots.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                                        No lots found
+                                    </td>
+                                </tr>
+                            ) : (
+                                lots.slice(0, 5).map((lot) => {
                                 const getStatusColor = (status) => {
                                     if (status === 'Complete' || status === 'complete') return 'status-complete';
                                     if (status === 'Progress' || status === 'progress') return 'status-progress';
@@ -366,7 +386,7 @@ const AdminDashboard = () => {
                                 
                                 return (
                                 <tr key={lot.id}>
-                                    <td><strong>{lot.id}</strong></td>
+                                    <td><strong>{lot.lotName || lot.id}</strong></td>
                                     <td>{lot.createdDate}</td>
                                     <td>
                                             <span className={`badge ${getProcessColor(lot.processingMethod)}`}>
@@ -385,7 +405,8 @@ const AdminDashboard = () => {
                                     <td>{lot.qualityScore}%</td>
                                 </tr>
                                 );
-                            })}
+                                })
+                            )}
                         </tbody>
                     </table>
                 </div>
