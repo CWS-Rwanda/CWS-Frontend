@@ -47,8 +47,8 @@ const DeliveryReceipt = ({ delivery }) => {
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
-                        <span style="color: #666; font-weight: 500;">Farmer ID:</span>
-                        <span>${delivery.farmerId}</span>
+                        <span style="color: #666; font-weight: 500;">Category:</span>
+                        <span style="font-weight: bold; color: ${delivery.farmerCategory === 'ACHETEUR' ? '#1565C0' : '#2E7D32'};">${delivery.farmerCategory === 'ACHETEUR' ? 'Acheteur' : 'Farmer'}</span>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
@@ -87,8 +87,8 @@ const DeliveryReceipt = ({ delivery }) => {
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
-                        <span style="color: #666; font-weight: 500;">Lot ID:</span>
-                        <span>${delivery.lotId || 'N/A'}</span>
+                        <span style="color: #666; font-weight: 500;">Lot Name:</span>
+                        <span>${delivery.lotName || 'N/A'}</span>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
@@ -190,8 +190,10 @@ const DeliveryReceipt = ({ delivery }) => {
                 </div>
 
                 <div className="receipt-row">
-                    <span className="receipt-label">Farmer ID:</span>
-                    <span className="receipt-value">{delivery.farmerId}</span>
+                    <span className="receipt-label">Category:</span>
+                    <span className={`receipt-value ${delivery.farmerCategory === 'ACHETEUR' ? 'text-acheteur' : 'text-farmer'}`}>
+                        <strong>{delivery.farmerCategory === 'ACHETEUR' ? 'Acheteur' : 'Farmer'}</strong>
+                    </span>
                 </div>
 
                 <div className="receipt-row">
@@ -226,8 +228,8 @@ const DeliveryReceipt = ({ delivery }) => {
                 </div>
 
                 <div className="receipt-row">
-                    <span className="receipt-label">Lot ID:</span>
-                    <span className="receipt-value">{delivery.lotId}</span>
+                    <span className="receipt-label">Lot Name:</span>
+                    <span className="receipt-value">{delivery.lotName || 'N/A'}</span>
                 </div>
 
                 <div className="receipt-row">
