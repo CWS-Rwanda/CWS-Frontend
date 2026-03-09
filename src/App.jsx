@@ -10,8 +10,8 @@ import TopBar from './components/common/TopBar';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import SeasonManagement from './pages/admin/SeasonManagement';
-import PricingConfig from './pages/admin/PricingConfig';
 import FarmerRegistry from './pages/admin/FarmerRegistry';
+import WorkerManagement from './pages/admin/WorkerManagement';
 import LotOverview from './pages/admin/LotOverview';
 import Reports from './pages/admin/Reports';
 import AuditLogs from './pages/admin/AuditLogs';
@@ -48,7 +48,7 @@ const ProtectedLayout = ({ children, allowedRole }) => {
   const { user } = useAuth();
 
   // Handle both string and array allowedRole
-  const isAllowed = Array.isArray(allowedRole) 
+  const isAllowed = Array.isArray(allowedRole)
     ? allowedRole.includes(user?.role) || allowedRole.includes(user?.role?.toLowerCase())
     : user?.role === allowedRole || user?.role?.toLowerCase() === allowedRole;
 
@@ -69,8 +69,8 @@ const ProtectedLayout = ({ children, allowedRole }) => {
 
 const AppRoutes = () => {
   const { user, isLoading } = useAuth();
-      const navigate = useNavigate();
-    useEffect(() => {
+  const navigate = useNavigate();
+  useEffect(() => {
     const handler = () => navigate('/login', { replace: true });
     window.addEventListener('unauthorized', handler);
     return () => window.removeEventListener('unauthorized', handler);
@@ -96,8 +96,8 @@ const AppRoutes = () => {
       <Route path="/admin" element={<ProtectedLayout allowedRole="admin"><AdminDashboard /></ProtectedLayout>} />
       <Route path="/admin/users" element={<ProtectedLayout allowedRole="admin"><UserManagement /></ProtectedLayout>} />
       <Route path="/admin/seasons" element={<ProtectedLayout allowedRole="admin"><SeasonManagement /></ProtectedLayout>} />
-      <Route path="/admin/pricing" element={<ProtectedLayout allowedRole="admin"><PricingConfig /></ProtectedLayout>} />
       <Route path="/admin/farmers" element={<ProtectedLayout allowedRole="admin"><FarmerRegistry /></ProtectedLayout>} />
+      <Route path="/admin/workers" element={<ProtectedLayout allowedRole="admin"><WorkerManagement /></ProtectedLayout>} />
       <Route path="/admin/lots" element={<ProtectedLayout allowedRole="admin"><LotOverview /></ProtectedLayout>} />
       <Route path="/admin/reports" element={<ProtectedLayout allowedRole="admin"><Reports /></ProtectedLayout>} />
       <Route path="/admin/audit" element={<ProtectedLayout allowedRole="admin"><AuditLogs /></ProtectedLayout>} />
