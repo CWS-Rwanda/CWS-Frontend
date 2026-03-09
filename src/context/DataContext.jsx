@@ -83,6 +83,7 @@ export const DataProvider = ({ children }) => {
         cell: farmer.cell || '',
         village: farmer.village || '',
         farmType: farmer.farm_type || '',
+        category: farmer.category || 'FARMER',
         idCardNumber: farmer.id_card_number || '',
         numberOfCoffeeTrees: farmer.number_of_coffee_trees || null,
         registeredDate: farmer.created_at?.split('T')[0] || '',
