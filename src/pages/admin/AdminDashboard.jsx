@@ -3,18 +3,34 @@ import { useData } from '../../context/DataContext';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-    const { deliveries, lots, revenue, expenses, laborCosts, loading, fetchLots } = useData();
+    const { deliveries, lots, revenue, expenses, laborCosts, loading, fetchLots, fetchRevenues, fetchExpenses, fetchLaborLogs } = useData();
     const [hoveredPoint, setHoveredPoint] = useState(null);
     const [hoveredPie, setHoveredPie] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
     const [pieTooltipPosition, setPieTooltipPosition] = useState({ x: 0, y: 0 });
 
-    // Refresh lots data when component mounts
+    // Fetch all necessary data when component mounts
     useEffect(() => {
+        // Fetch lots if not already loaded
         if (!loading.lots && lots.length === 0) {
             fetchLots();
         }
-    }, [loading.lots, lots.length, fetchLots]);
+        
+        // Fetch revenue if not already loaded
+        if (!loading.revenue && revenue.length === 0) {
+            fetchRevenues();
+        }
+        
+        // Fetch expenses if not already loaded
+        if (!loading.expenses && expenses.length === 0) {
+            fetchExpenses();
+        }
+        
+        // Fetch labor costs if not already loaded
+        if (!loading.laborLogs && laborCosts.length === 0) {
+            fetchLaborLogs();
+        }
+    }, [loading.lots, lots.length, loading.revenue, revenue.length, loading.expenses, expenses.length, loading.laborLogs, laborCosts.length, fetchLots, fetchRevenues, fetchExpenses, fetchLaborLogs]);
 
     // Calculate KPIs
     const totalRevenue = useMemo(() => {
