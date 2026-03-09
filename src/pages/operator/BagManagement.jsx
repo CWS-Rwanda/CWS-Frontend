@@ -71,15 +71,19 @@ const BagManagement = () => {
     };
 
     // Transform bags for display
-    const transformBag = (bag) => ({
-        id: bag.id,
-        bagId: bag.bag_code || bag.id,
-        lotId: bag.lot_id,
-        weight: parseFloat(bag.weight_kg || 0),
-        moisture: bag.moisture ? parseFloat(bag.moisture) : null,
-        storedDate: bag.stored_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-        dispatched: bag.dispatched || false,
-    });
+    const transformBag = (bag) => {
+        const lot = lots.find(l => l.id === bag.lot_id);
+        return {
+            id: bag.id,
+            bagId: bag.bag_code || bag.id,
+            lotId: bag.lot_id,
+            lotName: lot ? (lot.lotName || lot.id) : bag.lot_id,
+            weight: parseFloat(bag.weight_kg || 0),
+            moisture: bag.moisture ? parseFloat(bag.moisture) : null,
+            storedDate: bag.stored_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+            dispatched: bag.dispatched || false,
+        };
+    };
 
     const availableBags = bags
         .map(transformBag)
@@ -111,7 +115,7 @@ const BagManagement = () => {
                             <thead>
                                 <tr>
                                     <th>Bag Code</th>
-                                    <th>Lot ID</th>
+                                    <th>Lot Name</th>
                                     <th>Weight (kg)</th>
                                     <th>Moisture (%)</th>
                                     <th>Stored Date</th>
@@ -125,7 +129,9 @@ const BagManagement = () => {
                                             <strong>{bag.bagId}</strong>
                                             {index === 0 && <span className="badge badge-success" style={{ marginLeft: '0.5rem' }}>Next to dispatch</span>}
                                         </td>
-                                        <td>{bag.lotId}</td>
+                                        <td>
+                                            <strong>{bag.lotName}</strong>
+                                        </td>
                                         <td>{bag.weight.toFixed(2)}</td>
                                         <td>{bag.moisture !== null ? `${bag.moisture.toFixed(1)}%` : 'N/A'}</td>
                                         <td>{bag.storedDate}</td>
