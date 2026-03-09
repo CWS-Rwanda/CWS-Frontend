@@ -13,6 +13,7 @@ const DryingMonitor = () => {
     const [covered, setCovered] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -45,11 +46,16 @@ const DryingMonitor = () => {
                 operator_id: user.id,
             });
 
-            alert('Drying monitoring entry recorded successfully.');
+            // Set success message instead of alert
+            const selectedLotName = lots.find(l => l.id === selectedLot)?.lotName || selectedLot;
+            setSuccessMessage(`Drying monitoring entry recorded for ${selectedLotName} (Moisture: ${moisture}%)`);
             setMoisture('');
             setTurned(false);
             setCovered(false);
             setSelectedLot('');
+            
+            // Clear success message after 5 seconds
+            setTimeout(() => setSuccessMessage(null), 5000);
         } catch (err) {
             console.error('Error saving drying monitor entry:', err);
             setError(err.message || 'Failed to save drying monitor entry. Please try again.');
@@ -73,6 +79,12 @@ const DryingMonitor = () => {
                 {error && (
                     <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
                         {error}
+                    </div>
+                )}
+                
+                {successMessage && (
+                    <div className="alert alert-success" style={{ marginBottom: 'var(--spacing-md)' }}>
+                        {successMessage}
                     </div>
                 )}
 
