@@ -149,16 +149,16 @@ const FarmerRegistry = () => {
                                     .join(', ') || 'N/A'}
                             </span>
                         </div>
-                        {selectedFarmer.id_card_number && (
+                        {selectedFarmer.idCardNumber && (
                             <div className="detail-row">
                                 <span className="detail-label">ID/Passport:</span>
-                                <span className="detail-value">{selectedFarmer.id_card_number}</span>
+                                <span className="detail-value">{selectedFarmer.idCardNumber}</span>
                             </div>
                         )}
-                        {selectedFarmer.number_of_coffee_trees !== null && selectedFarmer.number_of_coffee_trees !== undefined && (
+                        {selectedFarmer.numberOfCoffeeTrees !== null && selectedFarmer.numberOfCoffeeTrees !== undefined && (
                             <div className="detail-row">
                                 <span className="detail-label">Coffee Trees:</span>
-                                <span className="detail-value">{selectedFarmer.number_of_coffee_trees}</span>
+                                <span className="detail-value">{selectedFarmer.numberOfCoffeeTrees}</span>
                             </div>
                         )}
                     </div>
