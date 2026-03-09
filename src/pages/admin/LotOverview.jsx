@@ -104,7 +104,7 @@ const LotOverview = () => {
                     <table className="lot-table">
                         <thead>
                             <tr>
-                                <th>LOT ID</th>
+                                <th>LOT NAME</th>
                                 <th>CREATED</th>
                                 <th>PROCESS TYPE</th>
                                 <th>GRADE</th>
@@ -116,7 +116,7 @@ const LotOverview = () => {
                         <tbody>
                             {lots.map(lot => (
                                 <tr key={lot.id}>
-                                    <td><strong>{lot.id}</strong></td>
+                                    <td><strong>{lot.lotName || lot.id}</strong></td>
                                     <td>{lot.createdDate}</td>
                                     <td>
                                         <span className={`badge-pill ${lot.processingMethod === 'Washed' ? 'badge-washed' : 'badge-honey'
