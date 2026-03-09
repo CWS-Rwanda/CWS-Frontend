@@ -8,6 +8,7 @@ const DryingLogs = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedLot, setSelectedLot] = useState('');
+    const [expandedNotes, setExpandedNotes] = useState(new Set());
 
     useEffect(() => {
         const load = async () => {
@@ -29,6 +30,21 @@ const DryingLogs = () => {
     }, []);
 
     const lotById = (id) => lots.find((l) => l.id === id);
+
+    const toggleNoteExpansion = (logId) => {
+        const newExpanded = new Set(expandedNotes);
+        if (newExpanded.has(logId)) {
+            newExpanded.delete(logId);
+        } else {
+            newExpanded.add(logId);
+        }
+        setExpandedNotes(newExpanded);
+    };
+
+    const formatNotes = (notes) => {
+        if (!notes) return '-';
+        return notes.split('.').filter(sentence => sentence.trim()).join('. ');
+    };
 
     const visibleLogs = selectedLot ? logs.filter((l) => l.lot_id === selectedLot) : logs;
 
@@ -106,8 +122,41 @@ const DryingLogs = () => {
                                                 </div>
                                             </td>
                                             <td>{log.stage}</td>
-                                            <td style={{ maxWidth: 320, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {log.notes || '-'}
+                                            <td>
+                                                <div style={{ maxWidth: 400 }}>
+                                                    <div 
+                                                        style={{ 
+                                                            cursor: 'pointer',
+                                                            padding: '4px 8px',
+                                                            borderRadius: '4px',
+                                                            backgroundColor: expandedNotes.has(log.id) ? '#f0f9ff' : 'transparent',
+                                                            border: expandedNotes.has(log.id) ? '1px solid #0ea5e9' : '1px solid transparent',
+                                                            transition: 'all 0.2s ease'
+                                                        }}
+                                                        onClick={() => toggleNoteExpansion(log.id)}
+                                                        title={expandedNotes.has(log.id) ? 'Click to collapse' : 'Click to expand'}
+                                                    >
+                                                        <div style={{ 
+                                                            whiteSpace: expandedNotes.has(log.id) ? 'normal' : 'nowrap',
+                                                            overflow: expandedNotes.has(log.id) ? 'visible' : 'hidden',
+                                                            textOverflow: expandedNotes.has(log.id) ? 'clip' : 'ellipsis',
+                                                            fontSize: '0.85rem',
+                                                            lineHeight: '1.4'
+                                                        }}>
+                                                            {formatNotes(log.notes)}
+                                                        </div>
+                                                        {log.notes && log.notes.length > 50 && (
+                                                            <div style={{ 
+                                                                fontSize: '0.75rem', 
+                                                                color: '#0ea5e9',
+                                                                marginTop: '2px',
+                                                                fontWeight: '500'
+                                                            }}>
+                                                                {expandedNotes.has(log.id) ? '▲ Show less' : '▼ Show more'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </td>
                                         </tr>
                                     );
