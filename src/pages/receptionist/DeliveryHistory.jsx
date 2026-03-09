@@ -3,7 +3,7 @@ import { useData } from '../../context/DataContext';
 import { deliveriesAPI } from '../../services/api';
 
 const DeliveryHistory = () => {
-    const { deliveries, fetchDeliveries, loading } = useData();
+    const { deliveries, fetchDeliveries, lots, loading } = useData();
 
     useEffect(() => {
         console.log("Deliveries: ",deliveries);
@@ -37,14 +37,13 @@ const DeliveryHistory = () => {
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th>Delivery ID</th>
                                     <th>Date</th>
                                     <th>Time</th>
                                     <th>Farmer</th>
                                     <th>Weight (kg)</th>
                                     <th>Unit Price</th>
                                     <th>Total Amount</th>
-                                    <th>Lot ID</th>
+                                    <th>Lot Name</th>
                                     <th>Payment Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -52,16 +51,17 @@ const DeliveryHistory = () => {
                             <tbody>
                                 {deliveries.slice().reverse().map(delivery => {
                                     const isPaid = delivery.paymentStatus === 'paid' || delivery.paymentStatus === 'PAID';
+                                    const lot = delivery.lotId ? lots.find(l => l.id === delivery.lotId) : null;
+                                    const lotName = lot ? (lot.lotName || lot.id) : 'N/A';
                                     return (
                                         <tr key={delivery.id}>
-                                            <td><strong>{delivery.id}</strong></td>
                                             <td>{delivery.date}</td>
                                             <td>{delivery.time}</td>
                                             <td>{delivery.farmerName || 'N/A'}</td>
                                             <td>{delivery.weight.toFixed(2)}</td>
                                             <td>RWF {delivery.unitPrice.toLocaleString()}</td>
                                             <td><strong>RWF {delivery.totalAmount.toLocaleString()}</strong></td>
-                                            <td>{delivery.lotId || 'N/A'}</td>
+                                            <td>{lotName}</td>
                                             <td>
                                                 <span className={`badge ${isPaid ? 'badge-success' : 'badge-warning'}`}>
                                                     {delivery.paymentStatus}
