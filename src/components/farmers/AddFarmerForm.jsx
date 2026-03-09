@@ -9,13 +9,14 @@ const AddFarmerForm = ({ isOpen, onClose, onSuccess }) => {
     name: '',
     phone: '',
     sector: '',
-    district: '',
-    province: '',
+    cell: '',
+    village: '',
     idNumber: '',
+    coffeeTrees: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
- 
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,60 +26,59 @@ const AddFarmerForm = ({ isOpen, onClose, onSuccess }) => {
     }));
   };
 
-const { fetchFarmers } = useData(); // Changed from refreshData to fetchFarmers
+  const { fetchFarmers } = useData(); // Changed from refreshData to fetchFarmers
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
 
     try {
-        // Format phone number to Rwanda format if it exists
-        let formattedPhone = formData.phone;
-        if (formData.phone) {
-            // Remove any non-digit characters
-            const digits = formData.phone.replace(/\D/g, '');
-            // If it starts with 0, replace with +250
-            if (digits.startsWith('0')) {
-                formattedPhone = `+250${digits.substring(1)}`;
-            } 
-            // If it starts with 250, add the +
-            else if (digits.startsWith('250')) {
-                formattedPhone = `+${digits}`;
-            }
-            // If it's already in +250 format, leave as is
-            else if (digits.startsWith('+250')) {
-                formattedPhone = digits;
-            }
-            // Otherwise, assume it's a local number and add +250
-            else {
-                formattedPhone = `+250${digits}`;
-            }
+      // Format phone number to Rwanda format if it exists
+      let formattedPhone = formData.phone;
+      if (formData.phone) {
+        // Remove any non-digit characters
+        const digits = formData.phone.replace(/\D/g, '');
+        // If it starts with 0, replace with +250
+        if (digits.startsWith('0')) {
+          formattedPhone = `+250${digits.substring(1)}`;
         }
+        // If it starts with 250, add the +
+        else if (digits.startsWith('250')) {
+          formattedPhone = `+${digits}`;
+        }
+        // If it's already in +250 format, leave as is
+        else if (digits.startsWith('+250')) {
+          formattedPhone = digits;
+        }
+        // Otherwise, assume it's a local number and add +250
+        else {
+          formattedPhone = `+250${digits}`;
+        }
+      }
 
-        const formDataToSend = {
-            name: formData.name,
-            phone_number: formattedPhone || null,  // Will be null if no phone provided
-            location: formData.sector ? {
-                cell: formData.sector,
-                sector: formData.sector,
-                district: formData.district,
-                province: formData.province
-            } : null,
-            active: true
-        };
+      const formDataToSend = {
+        name: formData.name,
+        phone_number: formattedPhone || null,  // Will be null if no phone provided
+        sector: formData.sector || null,
+        cell: formData.cell || null,
+        village: formData.village || null,
+        id_card_number: formData.idNumber || null,
+        number_of_coffee_trees: formData.coffeeTrees ? parseInt(formData.coffeeTrees, 10) : null,
+        active: true
+      };
 
-        const response = await farmersAPI.create(formDataToSend);
-        await fetchFarmers();
-        onSuccess('Farmer added successfully!');
-        onClose();
+      const response = await farmersAPI.create(formDataToSend);
+      await fetchFarmers();
+      onSuccess('Farmer added successfully!');
+      onClose();
     } catch (err) {
-        console.error('Error adding farmer:', err);
-        setError(err.response?.data?.message || 'Failed to add farmer. Please try again.');
+      console.error('Error adding farmer:', err);
+      setError(err.response?.data?.message || 'Failed to add farmer. Please try again.');
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
-};
+  };
 
   if (!isOpen) return null;
 
@@ -86,7 +86,7 @@ const handleSubmit = async (e) => {
     <Modal isOpen={isOpen} onClose={onClose} title="Add New Farmer">
       <form onSubmit={handleSubmit} className="add-farmer-form">
         {error && <div className="alert alert-danger">{error}</div>}
-        
+
         <div className="form-group">
           <label>Full Name *</label>
           <input
@@ -102,15 +102,15 @@ const handleSubmit = async (e) => {
         <div className="form-group">
           <label>Phone Number</label>
           <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="form-control"
-              placeholder="e.g., 0781234567 or +250781234567"
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="form-control"
+            placeholder="e.g., 0781234567 or +250781234567"
           />
           <small className="text-muted">Enter a Rwanda phone number (e.g., 0781234567 or +250781234567)</small>
-      </div>
+        </div>
 
         <div className="form-row">
           <div className="form-group">
@@ -126,11 +126,11 @@ const handleSubmit = async (e) => {
           </div>
 
           <div className="form-group">
-            <label>District</label>
+            <label>Cell</label>
             <input
               type="text"
-              name="district"
-              value={formData.district}
+              name="cell"
+              value={formData.cell}
               onChange={handleChange}
               className="form-control"
             />
@@ -139,11 +139,11 @@ const handleSubmit = async (e) => {
 
         <div className="form-row">
           <div className="form-group">
-            <label>Province</label>
+            <label>Village</label>
             <input
               type="text"
-              name="province"
-              value={formData.province}
+              name="village"
+              value={formData.village}
               onChange={handleChange}
               className="form-control"
             />
@@ -159,6 +159,18 @@ const handleSubmit = async (e) => {
               className="form-control"
             />
           </div>
+        </div>
+
+        <div className="form-group">
+          <label>Number of Coffee Trees</label>
+          <input
+            type="number"
+            name="coffeeTrees"
+            value={formData.coffeeTrees}
+            onChange={handleChange}
+            className="form-control"
+            min="0"
+          />
         </div>
 
         <div className="form-actions">
