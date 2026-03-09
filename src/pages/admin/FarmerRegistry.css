@@ -215,6 +215,23 @@
     background: #3a2201;
 }
 
+.farmer-registry .badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.farmer-registry .badge-farmer {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.farmer-registry .badge-acheteur {
+    background: #E3F2FD;
+    color: #1565C0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .farmer-registry .stats-grid {
