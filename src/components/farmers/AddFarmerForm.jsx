@@ -13,6 +13,7 @@ const AddFarmerForm = ({ isOpen, onClose, onSuccess }) => {
     village: '',
     idNumber: '',
     coffeeTrees: '',
+    category: 'FARMER'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -65,6 +66,7 @@ const AddFarmerForm = ({ isOpen, onClose, onSuccess }) => {
         village: formData.village || null,
         id_card_number: formData.idNumber || null,
         number_of_coffee_trees: formData.coffeeTrees ? parseInt(formData.coffeeTrees, 10) : null,
+        category: formData.category,
         active: true
       };
 
@@ -83,9 +85,31 @@ const AddFarmerForm = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add New Farmer">
+    <Modal isOpen={isOpen} onClose={onClose} title={formData.category === 'ACHETEUR' ? "Add New Acheteur" : "Add New Farmer"}>
       <form onSubmit={handleSubmit} className="add-farmer-form">
         {error && <div className="alert alert-danger">{error}</div>}
+
+        <div className="form-group">
+          <label>Category *</label>
+          <div className="category-toggle" style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+            <button
+              type="button"
+              className={`btn ${formData.category === 'FARMER' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => setFormData(prev => ({ ...prev, category: 'FARMER' }))}
+              style={{ flex: 1 }}
+            >
+              Farmer
+            </button>
+            <button
+              type="button"
+              className={`btn ${formData.category === 'ACHETEUR' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => setFormData(prev => ({ ...prev, category: 'ACHETEUR' }))}
+              style={{ flex: 1 }}
+            >
+              Acheteur
+            </button>
+          </div>
+        </div>
 
         <div className="form-group">
           <label>Full Name *</label>
@@ -187,7 +211,7 @@ const AddFarmerForm = ({ isOpen, onClose, onSuccess }) => {
             className="btn btn-primary"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Adding...' : 'Add Farmer'}
+            {isSubmitting ? 'Adding...' : (formData.category === 'ACHETEUR' ? 'Add Acheteur' : 'Add Farmer')}
           </button>
         </div>
       </form>
