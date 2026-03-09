@@ -13,7 +13,8 @@ const FarmerRegistry = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     // Calculate from real data
-    const totalFarmers = farmers.length;
+    const totalFarmers = farmers.filter(f => f.category !== 'ACHETEUR').length;
+    const totalAcheteurs = farmers.filter(f => f.category === 'ACHETEUR').length;
     const activeFarmers = farmers.filter(f => f.active !== false).length;
 
     // Calculate delivery increase (simplified - compare current season vs previous)
@@ -72,8 +73,8 @@ const FarmerRegistry = () => {
                 <div className="stat-card">
                     <div className="stat-indicator indicator-green"></div>
                     <div className="stat-content">
-                        <span className="stat-label">Delivery increase this season</span>
-                        <h3 className="stat-value text-green">{deliveryIncrease}</h3>
+                        <span className="stat-label">Total Acheteurs</span>
+                        <h3 className="stat-value text-green">{totalAcheteurs}</h3>
                     </div>
                 </div>
             </div>
@@ -91,6 +92,7 @@ const FarmerRegistry = () => {
                                 <tr>
                                     <th>NAME</th>
                                     <th>PHONE NUMBER</th>
+                                    <th>CATEGORY</th>
                                     <th>LOCATION</th>
                                     <th>TOTAL DELIVERIES</th>
                                     <th>TOTAL WEIGHT (KG)</th>
@@ -104,6 +106,11 @@ const FarmerRegistry = () => {
                                         <tr key={farmer.id}>
                                             <td className="farmer-name">{farmer.name}</td>
                                             <td>{farmer.phone || 'N/A'}</td>
+                                            <td>
+                                                <span className={`badge ${farmer.category === 'ACHETEUR' ? 'badge-acheteur' : 'badge-farmer'}`}>
+                                                    {farmer.category === 'ACHETEUR' ? 'Acheteur' : 'Farmer'}
+                                                </span>
+                                            </td>
                                             <td>{[farmer.sector, farmer.cell, farmer.village].filter(Boolean).join(', ') || 'N/A'}</td>
                                             <td>{totals.totalDeliveries}</td>
                                             <td>{totals.totalWeight.toFixed(2)}</td>
@@ -136,6 +143,10 @@ const FarmerRegistry = () => {
                         <div className="detail-row">
                             <span className="detail-label">Name:</span>
                             <span className="detail-value">{selectedFarmer.name}</span>
+                        </div>
+                        <div className="detail-row">
+                            <span className="detail-label">Category:</span>
+                            <span className="detail-value">{selectedFarmer.category === 'ACHETEUR' ? 'Acheteur' : 'Farmer'}</span>
                         </div>
                         <div className="detail-row">
                             <span className="detail-label">Phone:</span>
