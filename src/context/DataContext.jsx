@@ -79,10 +79,12 @@ export const DataProvider = ({ children }) => {
         id: farmer.id,
         name: farmer.name,
         phone: farmer.phone_number || '',
-        sector: farmer.location?.sector || '',
-        cell: farmer.location?.cell || '',
-        village: farmer.location?.village || '',
-        farmType: farmer.location?.farm_type || '',
+        sector: farmer.sector || '',
+        cell: farmer.cell || '',
+        village: farmer.village || '',
+        farmType: farmer.farm_type || '',
+        idCardNumber: farmer.id_card_number || '',
+        numberOfCoffeeTrees: farmer.number_of_coffee_trees || null,
         registeredDate: farmer.created_at?.split('T')[0] || '',
         active: farmer.active,
     });
@@ -94,6 +96,7 @@ export const DataProvider = ({ children }) => {
         grade: lot.grade || '',
         status: lot.status?.toLowerCase().replace('_', ' ') || 'created',
         seasonId: lot.season_id,
+        createdDate: lot.created_at?.split('T')[0] || '',
         totalWeight: 0, // Will be calculated from deliveries
         timeline: [], // Will be populated from processing logs
     });
