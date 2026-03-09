@@ -14,7 +14,7 @@ const Sidebar = () => {
                 { path: '/admin/users', label: 'Users', icon: 'users' },
                 { path: '/admin/seasons', label: 'Season', icon: 'calendar' },
                 { path: '/admin/farmers', label: 'Farmers', icon: 'farmer' },
-                { path: '/admin/pricing', label: 'Pricing', icon: 'pricing' },
+                { path: '/admin/workers', label: 'Workers', icon: 'users' },
                 { path: '/admin/lots', label: 'Lot', icon: 'lot' },
                 { path: '/admin/reports', label: 'Report', icon: 'report' },
                 { path: '/admin/audit', label: 'Audit', icon: 'audit' },
