@@ -50,6 +50,16 @@
     color: var(--color-gray-900);
 }
 
+.text-acheteur {
+    color: #1565C0;
+    font-weight: bold;
+}
+
+.text-farmer {
+    color: #2E7D32;
+    font-weight: bold;
+}
+
 .receipt-total {
     background: var(--color-gray-50);
     padding: var(--spacing-md);
