@@ -155,7 +155,7 @@ const DeliveryEntry = () => {
                             <option value="">-- Select Farmer --</option>
                             {farmers.map(farmer => (
                                 <option key={farmer.id} value={farmer.id}>
-                                    {farmer.id} - {farmer.name}
+                                    {farmer.name} ({farmer.category === 'ACHETEUR' ? 'Acheteur' : 'Farmer'})
                                 </option>
                             ))}
                         </select>
