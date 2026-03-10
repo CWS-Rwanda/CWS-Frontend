@@ -30,7 +30,7 @@ const AdminDashboard = () => {
         if (!loading.laborLogs && laborCosts.length === 0) {
             fetchLaborLogs();
         }
-    }, [loading.lots, lots.length, loading.revenue, revenue.length, loading.expenses, expenses.length, loading.laborLogs, laborCosts.length, fetchLots, fetchRevenues, fetchExpenses, fetchLaborLogs]);
+    }, [loading.lots, lots.length, loading.revenue, revenue.length, loading.expenses, expenses.length, loading.laborLogs, laborCosts.length]);
 
     // Calculate KPIs
     const totalRevenue = useMemo(() => {
