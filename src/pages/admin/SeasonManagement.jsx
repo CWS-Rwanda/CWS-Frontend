@@ -13,6 +13,9 @@ const SeasonManagement = () => {
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [seasonToDeactivate, setSeasonToDeactivate] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         start_date: '',
@@ -161,16 +164,33 @@ const SeasonManagement = () => {
     };
 
     const handleDeactivate = async (seasonId) => {
-        if (!window.confirm('Are you sure you want to deactivate this season?')) {
-            return;
-        }
+        const season = displaySeasons.find(s => s.id === seasonId);
+        if (!season) return;
+        
+        setSeasonToDeactivate(season);
+        setIsConfirmModalOpen(true);
+    };
+
+    const confirmDeactivate = async () => {
+        if (!seasonToDeactivate) return;
+        
+        setIsConfirmModalOpen(false);
+        setError(null);
+        setIsSubmitting(true);
 
         try {
-            await seasonsAPI.deactivate(seasonId);
+            await seasonsAPI.deactivate(seasonToDeactivate.id);
+            setSuccessMessage(`Season "${seasonToDeactivate.name}" has been deactivated successfully.`);
             await fetchSeasons();
+            
+            // Clear success message after 5 seconds
+            setTimeout(() => setSuccessMessage(null), 5000);
         } catch (err) {
             console.error('Error deactivating season:', err);
-            alert(err.message || 'Failed to deactivate season. Please try again.');
+            setError(err.message || 'Failed to deactivate season. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+            setSeasonToDeactivate(null);
         }
     };
 
@@ -301,6 +321,18 @@ const SeasonManagement = () => {
                         Add Season
                     </button>
                 </div>
+
+                {error && (
+                    <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
+                        {error}
+                    </div>
+                )}
+                
+                {successMessage && (
+                    <div className="alert alert-success" style={{ marginBottom: 'var(--spacing-md)' }}>
+                        {successMessage}
+                    </div>
+                )}
 
                 {loading.seasons ? (
                     <div style={{ padding: '2rem', textAlign: 'center' }}>Loading seasons...</div>
@@ -504,6 +536,56 @@ const SeasonManagement = () => {
                         </button>
                     </div>
                 </form>
+            </Modal>
+
+            <Modal 
+                isOpen={isConfirmModalOpen} 
+                onClose={() => {
+                    setIsConfirmModalOpen(false);
+                    setSeasonToDeactivate(null);
+                }} 
+                title="Confirm Deactivation"
+            >
+                <div style={{ padding: 'var(--spacing-md) 0' }}>
+                    <p style={{ marginBottom: 'var(--spacing-md)', fontSize: '1rem' }}>
+                        Are you sure you want to deactivate the season <strong>"{seasonToDeactivate?.name}"</strong>?
+                    </p>
+                    <div style={{ 
+                        backgroundColor: '#fef3c7', 
+                        border: '1px solid #f59e0b', 
+                        borderRadius: '6px', 
+                        padding: 'var(--spacing-sm)',
+                        marginBottom: 'var(--spacing-lg)'
+                    }}>
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: '#92400e' }}>
+                            <strong>Note:</strong> Deactivating this season will prevent new deliveries from being assigned to it. 
+                            Existing deliveries and records will remain unchanged.
+                        </p>
+                    </div>
+                </div>
+                
+                <div className="actions-group" style={{ display: 'flex', gap: 'var(--spacing-sm)', justifyContent: 'flex-end' }}>
+                    <button 
+                        type="button" 
+                        onClick={() => {
+                            setIsConfirmModalOpen(false);
+                            setSeasonToDeactivate(null);
+                        }} 
+                        className="btn btn-outline" 
+                        disabled={isSubmitting}
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="button" 
+                        onClick={confirmDeactivate} 
+                        className="btn btn-danger" 
+                        disabled={isSubmitting}
+                        style={{ backgroundColor: '#dc2626', borderColor: '#dc2626' }}
+                    >
+                        {isSubmitting ? 'Deactivating...' : 'Deactivate Season'}
+                    </button>
+                </div>
             </Modal>
         </div>
     );
