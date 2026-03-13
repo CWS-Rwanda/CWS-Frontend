@@ -20,7 +20,7 @@ const PricingConfig = () => {
                 if (currentRes.data.success) {
                     setCurrentPricing(currentRes.data.data);
                     setNewPrice(currentRes.data.data.unit_price.toString());
-                    
+
                     // Auto-set season if available
                     if (currentRes.data.data.season_name) {
                         setNewSeason(currentRes.data.data.season_name);
@@ -84,10 +84,10 @@ const PricingConfig = () => {
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
         });
     };
 
