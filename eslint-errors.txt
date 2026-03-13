@@ -1,0 +1,23 @@
+D:\SicilyLabs\CWS\CWS-Frontend\src\pages\admin\SeasonManagement.jsx
+  3: 'revenuesAPI' is defined but never used. Allowed unused vars must match /^[A-Z_]/u.
+  37: React Hook useEffect has missing dependencies: 'fetchRevenues' and 'revenue.length'. Either include them or remove the dependency array.
+  42: React Hook useEffect has a missing dependency: 'fetchSeasons'. Either include it or remove the dependency array.
+  65: React Hook useMemo has a missing dependency: 'transformSeason'. Either include it or remove the dependency array.
+  197: 'getStatusColor' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+  255: 'svgRect' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+D:\SicilyLabs\CWS\CWS-Frontend\src\pages\admin\UserManagement.jsx
+  8: 'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+  10: 'farmers' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+  215: 'getRoleValue' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+D:\SicilyLabs\CWS\CWS-Frontend\src\pages\finance\ExpenseManagement.jsx
+  9: 'user' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+D:\SicilyLabs\CWS\CWS-Frontend\src\pages\finance\FinancialStatements.jsx
+  8: 'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+  26: React Hook useEffect has a missing dependency: 'loadFinancialStatements'. Either include it or remove the dependency array.
+D:\SicilyLabs\CWS\CWS-Frontend\src\pages\finance\LaborCosts.jsx
+  66: 'transformLaborLog' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+D:\SicilyLabs\CWS\CWS-Frontend\src\pages\operator\ProcessingLogs.jsx
+  7: 'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.
+D:\SicilyLabs\CWS\CWS-Frontend\src\pages\receptionist\DeliveryEntry.jsx
+  7: 'pricingAPI' is defined but never used. Allowed unused vars must match /^[A-Z_]/u.
+  47: 'handleDownloadPDF' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.

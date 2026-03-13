@@ -29,12 +29,12 @@ const DeliveryEntry = () => {
         if (!loading.farmers && farmers.length === 0) {
             fetchFarmers();
         }
-        
+
         // Fetch lots if not already loaded
         if (!loading.lots && lots.length === 0) {
             fetchLots();
         }
-        
+
         // Fetch seasons if not already loaded
         if (!loading.seasons && seasons.length === 0) {
             fetchSeasons();

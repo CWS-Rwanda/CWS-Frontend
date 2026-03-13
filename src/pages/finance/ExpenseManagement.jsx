@@ -1,204 +1,436 @@
-import React, { useState } from 'react';
-import { useData } from '../../context/DataContext';
-import { useAuth } from '../../context/AuthContext';
-import { expensesAPI } from '../../services/api';
-import Modal from '../../components/common/Modal';
+import React, { useState, useEffect } from 'react';
+import { excelFinanceAPI } from '../../services/api';
 
 const ExpenseManagement = () => {
-    const { expenses, seasons, fetchExpenses, loading } = useData();
-    const { user } = useAuth();
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
-    const [formData, setFormData] = useState({
-        category: 'UTILITIES',
+    const [excelFileExists, setExcelFileExists] = useState(null);
+    const [isCreatingFile, setIsCreatingFile] = useState(false);
+    
+    // Data State
+    const [directCosts, setDirectCosts] = useState(null);
+    const [adminCosts, setAdminCosts] = useState(null);
+    const [activeTab, setActiveTab] = useState('direct'); // 'direct' or 'admin'
+
+    const currentYear = new Date().getFullYear();
+
+    // Form States
+    const [directFormData, setDirectFormData] = useState({
         description: '',
+        quantity: '',
         amount: '',
-        expense_date: new Date().toISOString().split('T')[0],
+        comment: '',
     });
 
-    // Map frontend categories to backend ENUM values
-    const categories = [
-        { label: 'Transport', value: 'TRANSPORT' },
-        { label: 'Labor', value: 'LABOR' },
-        { label: 'Equipment Maintenance', value: 'EQUIPMENT_MAINTENANCE' },
-        { label: 'Raw Materials', value: 'RAW_MATERIALS' },
-        { label: 'Administration', value: 'ADMINISTRATION' },
-        { label: 'Utilities', value: 'UTILITIES' },
-        { label: 'Other', value: 'OTHER' }
-    ];
+    const [adminFormData, setAdminFormData] = useState({
+        description: '',
+        amount: '',
+        unit: 'Month',
+        num_people: '1',
+    });
 
-    const currentSeason = seasons.find(s => s.active === true || s.status === 'ACTIVE' || s.status === 'active');
+    // Check if Excel file exists on mount
+    useEffect(() => {
+        checkExcelFile();
+    }, []);
 
-    const handleSubmit = async (e) => {
+    const checkExcelFile = async () => {
+        try {
+            const res = await excelFinanceAPI.checkFile(currentYear);
+            setExcelFileExists(res.data.data.exists);
+            if (res.data.data.exists) {
+                loadExcelData();
+            }
+        } catch (err) {
+            console.error('Error checking Excel file:', err);
+            setExcelFileExists(false);
+        }
+    };
+
+    const loadExcelData = async () => {
+        try {
+            const [directRes, adminRes] = await Promise.all([
+                excelFinanceAPI.getDirectCosts(currentYear),
+                excelFinanceAPI.getAdminCosts(currentYear)
+            ]);
+            setDirectCosts(directRes.data.data);
+            setAdminCosts(adminRes.data.data);
+        } catch (err) {
+            console.error('Error loading Excel data:', err);
+        }
+    };
+
+    const handleCreateFile = async () => {
+        setIsCreatingFile(true);
+        try {
+            await excelFinanceAPI.createFile(currentYear);
+            setExcelFileExists(true);
+            await loadExcelData();
+        } catch (err) {
+            console.error('Error creating file:', err);
+            setError('Failed to create financial file. Please try again.');
+        } finally {
+            setIsCreatingFile(false);
+        }
+    };
+
+    const handleDirectSubmit = async (e) => {
         e.preventDefault();
         setError(null);
         setIsSubmitting(true);
 
         try {
-            if (!currentSeason) {
-                setError('No active season found. Please create or activate a season first.');
-                setIsSubmitting(false);
-                return;
-            }
+            if (!excelFileExists) throw new Error("Financial Excel file must be created first.");
 
-            await expensesAPI.create({
-                season_id: currentSeason.id,
-                category: formData.category,
-                description: formData.description,
-                amount: parseFloat(formData.amount),
-                expense_date: formData.expense_date
+            const quantity = parseFloat(directFormData.quantity) || 0;
+            const amount = parseFloat(directFormData.amount) || 0;
+            const total = quantity && amount ? quantity * amount : amount;
+
+            await excelFinanceAPI.addDirectCost(currentYear, {
+                description: directFormData.description,
+                quantity: quantity,
+                amount: amount,
+                total: total,
+                comment: directFormData.comment,
             });
 
-            setIsModalOpen(false);
-            setFormData({ category: 'UTILITIES', description: '', amount: '', expense_date: new Date().toISOString().split('T')[0] });
-            await fetchExpenses();
+            await loadExcelData();
+            alert('Direct Cost recorded successfully!');
+            setDirectFormData({ description: '', quantity: '', amount: '', comment: '' });
         } catch (err) {
-            console.error('Error creating expense:', err);
-            setError(err.message || 'Failed to create expense. Please try again.');
+            console.error('Error creating direct cost:', err);
+            setError(err.message || 'Failed to create direct cost.');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const totalExpenses = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-    
-    // Transform expense for display
-    const transformExpense = (expense) => ({
-        id: expense.id,
-        date: expense.expense_date || expense.date,
-        category: expense.category,
-        description: expense.description || '',
-        amount: parseFloat(expense.amount || 0),
-    });
+    const handleAdminSubmit = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setIsSubmitting(true);
+
+        try {
+            if (!excelFileExists) throw new Error("Financial Excel file must be created first.");
+
+            const amount = parseFloat(adminFormData.amount) || 0;
+            const numPeople = parseFloat(adminFormData.num_people) || 1;
+
+            await excelFinanceAPI.addAdminCost(currentYear, {
+                description: adminFormData.description,
+                amount: amount,
+                unit: adminFormData.unit,
+                num_people: numPeople,
+            });
+
+            await loadExcelData();
+            alert('Admin Cost recorded successfully!');
+            setAdminFormData({ description: '', amount: '', unit: 'Month', num_people: '1' });
+        } catch (err) {
+            console.error('Error creating admin cost:', err);
+            setError(err.message || 'Failed to create admin cost.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const directTotal = directCosts?.total || 0;
+    const adminTotal = adminCosts?.total || 0; // The total calculation in the backend might be based on monthly values
 
     return (
         <div>
             <div className="page-header">
-                <h1 className="page-title">Expense Management</h1>
-                <p className="page-description">Track operating expenses</p>
+                <h1 className="page-title">Direct & Administrative Costs</h1>
+                <p className="page-description">Record costs directly matching the Excel templates</p>
             </div>
+
+            {excelFileExists === false && (
+                <div className="alert alert-warning" style={{ marginBottom: 'var(--spacing-xl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                        <strong>⚠️ No financial statement file found for {currentYear}.</strong>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>You need to create the Excel file before cost data can be saved to it.</p>
+                    </div>
+                    <button onClick={handleCreateFile} className="btn btn-primary" disabled={isCreatingFile} style={{ whiteSpace: 'nowrap', marginLeft: '1rem' }}>
+                        {isCreatingFile ? 'Creating...' : `📄 Create Financial File for ${currentYear}`}
+                    </button>
+                </div>
+            )}
+
+            {excelFileExists === true && (
+                <div className="alert alert-success" style={{ marginBottom: 'var(--spacing-md)', fontSize: '0.9rem' }}>
+                    ✅ Excel file active for {currentYear}
+                </div>
+            )}
 
             <div className="stats-grid" style={{ marginBottom: 'var(--spacing-xl)' }}>
                 <div className="stat-card">
-                    <div className="stat-label">Total Expenses</div>
-                    <div className="stat-value">RWF {totalExpenses.toLocaleString()}</div>
+                    <div className="stat-label">Total Direct Costs (Excel)</div>
+                    <div className="stat-value">RWF {directTotal.toLocaleString()}</div>
                 </div>
                 <div className="stat-card">
-                    <div className="stat-label">Number of Expenses</div>
-                    <div className="stat-value">{expenses.length}</div>
+                    <div className="stat-label">Total Administrative Costs (Excel)</div>
+                    <div className="stat-value">RWF {adminTotal.toLocaleString()}</div>
                 </div>
             </div>
 
-            <div className="content-card">
-                <div className="card-header">
-                    <h2 className="card-title">All Expenses</h2>
-                    <button onClick={() => setIsModalOpen(true)} className="btn btn-primary" disabled={!currentSeason}>
-                        + Add Expense
-                    </button>
-                </div>
+            {/* Tab Navigation */}
+            <div style={{ display: 'flex', gap: '0', marginBottom: 'var(--spacing-lg)' }}>
+                <button
+                    onClick={() => setActiveTab('direct')}
+                    className={`btn ${activeTab === 'direct' ? 'btn-primary' : 'btn-outline'}`}
+                    style={{ borderRadius: '8px 0 0 8px' }}
+                >
+                    Direct Costs
+                </button>
+                <button
+                    onClick={() => setActiveTab('admin')}
+                    className={`btn ${activeTab === 'admin' ? 'btn-primary' : 'btn-outline'}`}
+                    style={{ borderRadius: '0 8px 8px 0' }}
+                >
+                    Administrative Costs
+                </button>
+            </div>
 
-                {loading.expenses ? (
-                    <div style={{ padding: '2rem', textAlign: 'center' }}>Loading expenses...</div>
-                ) : expenses.length === 0 ? (
-                    <div style={{ padding: '2rem', textAlign: 'center' }}>No expenses found.</div>
-                ) : (
-                    <div className="table-container">
-                        <table className="table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Category</th>
-                                    <th>Description</th>
-                                    <th>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {expenses.slice().reverse().map(expense => {
-                                    const transformed = transformExpense(expense);
-                                    return (
-                                        <tr key={transformed.id}>
-                                            <td>{transformed.date}</td>
-                                            <td>
-                                                <span className="badge badge-info">{transformed.category.replace('_', ' ')}</span>
-                                            </td>
-                                            <td>{transformed.description}</td>
-                                            <td><strong>RWF {transformed.amount.toLocaleString()}</strong></td>
+            {error && (
+                <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
+                    {error}
+                </div>
+            )}
+
+            {/* DIRECT COSTS TAB */}
+            {activeTab === 'direct' && (
+                <div className="costs-section">
+                    <div className="content-card" style={{ marginBottom: 'var(--spacing-xl)' }}>
+                        <div className="card-header">
+                            <h2 className="card-title">Record Direct Cost</h2>
+                        </div>
+                        <form onSubmit={handleDirectSubmit} style={{ padding: 'var(--spacing-md)' }}>
+                            <div className="form-group">
+                                <label className="form-label required">Description</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={directFormData.description}
+                                    onChange={(e) => setDirectFormData({ ...directFormData, description: e.target.value })}
+                                    placeholder="e.g. Cherry Purchases, Transport Cherries, Electricity"
+                                    required
+                                    disabled={isSubmitting || !excelFileExists}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Quantity</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={directFormData.quantity}
+                                        onChange={(e) => setDirectFormData({ ...directFormData, quantity: e.target.value })}
+                                        placeholder="e.g. 137600"
+                                        step="0.01"
+                                        disabled={isSubmitting || !excelFileExists}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label required">Unit Amount / Amount (RWF)</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={directFormData.amount}
+                                        onChange={(e) => setDirectFormData({ ...directFormData, amount: e.target.value })}
+                                        placeholder="e.g. 850"
+                                        step="0.01"
+                                        required
+                                        disabled={isSubmitting || !excelFileExists}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Total (RWF)</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={directFormData.quantity && directFormData.amount ? `RWF ${(parseFloat(directFormData.quantity) * parseFloat(directFormData.amount)).toLocaleString()}` : directFormData.amount ? `RWF ${parseFloat(directFormData.amount).toLocaleString()}` : ''}
+                                    disabled
+                                    style={{ backgroundColor: 'var(--color-gray-100)', fontWeight: 'bold' }}
+                                />
+                                <small style={{ color: 'var(--color-gray-500)' }}>Auto-calculated (Quantity × Amount) or defaults to Amount</small>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Comment</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={directFormData.comment}
+                                    onChange={(e) => setDirectFormData({ ...directFormData, comment: e.target.value })}
+                                    disabled={isSubmitting || !excelFileExists}
+                                />
+                            </div>
+
+                            <button type="submit" className="btn btn-primary" disabled={isSubmitting || !excelFileExists}>
+                                {isSubmitting ? 'Recording...' : 'Record Direct Cost'}
+                            </button>
+                        </form>
+                    </div>
+
+                    <div className="content-card">
+                        <div className="card-header">
+                            <h2 className="card-title">Direct Costs Sheet (Excel)</h2>
+                            <button onClick={loadExcelData} className="btn btn-outline">🔄 Refresh</button>
+                        </div>
+                        {!directCosts || directCosts.entries?.length === 0 ? (
+                            <div style={{ padding: '2rem', textAlign: 'center' }}>No entries yet.</div>
+                        ) : (
+                            <div className="table-container">
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Description</th>
+                                            <th>Quantity</th>
+                                            <th>Amount (RWF)</th>
+                                            <th>Total (RWF)</th>
+                                            <th>Comment</th>
                                         </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                                    </thead>
+                                    <tbody>
+                                        {directCosts.entries.map((entry, idx) => (
+                                            <tr key={idx}>
+                                                <td><strong>{entry.description}</strong></td>
+                                                <td>{entry.quantity || '-'}</td>
+                                                <td>{entry.amount ? `RWF ${entry.amount.toLocaleString()}` : '-'}</td>
+                                                <td><strong>RWF {(entry.total || 0).toLocaleString()}</strong></td>
+                                                <td>{entry.comment || '-'}</td>
+                                            </tr>
+                                        ))}
+                                        <tr style={{ backgroundColor: 'var(--color-gray-100)', fontWeight: 'bold' }}>
+                                            <td colSpan="3">TOTAL</td>
+                                            <td><strong>RWF {directTotal.toLocaleString()}</strong></td>
+                                            <td></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Expense">
-                {error && (
-                    <div className="alert alert-error" style={{ marginBottom: 'var(--spacing-md)' }}>
-                        {error}
-                    </div>
-                )}
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label className="form-label required">Category</label>
-                        <select
-                            className="form-select"
-                            value={formData.category}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            required
-                            disabled={isSubmitting}
-                        >
-                            {categories.map(cat => (
-                                <option key={cat.value} value={cat.value}>{cat.label}</option>
-                            ))}
-                        </select>
+            {/* ADMIN COSTS TAB */}
+            {activeTab === 'admin' && (
+                <div className="costs-section">
+                    <div className="content-card" style={{ marginBottom: 'var(--spacing-xl)' }}>
+                        <div className="card-header">
+                            <h2 className="card-title">Record Administrative Cost</h2>
+                        </div>
+                        <form onSubmit={handleAdminSubmit} style={{ padding: 'var(--spacing-md)' }}>
+                            <div className="form-group">
+                                <label className="form-label required">Description</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={adminFormData.description}
+                                    onChange={(e) => setAdminFormData({ ...adminFormData, description: e.target.value })}
+                                    placeholder="e.g. Office Rent, Director Transport, Legal fees"
+                                    required
+                                    disabled={isSubmitting || !excelFileExists}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--spacing-md)' }}>
+                                <div className="form-group">
+                                    <label className="form-label required">Amount (RWF)</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={adminFormData.amount}
+                                        onChange={(e) => setAdminFormData({ ...adminFormData, amount: e.target.value })}
+                                        step="0.01"
+                                        required
+                                        disabled={isSubmitting || !excelFileExists}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label required">Unit</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={adminFormData.unit}
+                                        onChange={(e) => setAdminFormData({ ...adminFormData, unit: e.target.value })}
+                                        placeholder="e.g. Month, Year, Trip"
+                                        required
+                                        disabled={isSubmitting || !excelFileExists}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label required"># of People</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={adminFormData.num_people}
+                                        onChange={(e) => setAdminFormData({ ...adminFormData, num_people: e.target.value })}
+                                        step="0.01"
+                                        required
+                                        disabled={isSubmitting || !excelFileExists}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <button type="submit" className="btn btn-primary" disabled={isSubmitting || !excelFileExists}>
+                                {isSubmitting ? 'Recording...' : 'Record Admin Cost'}
+                            </button>
+                        </form>
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label required">Date</label>
-                        <input
-                            type="date"
-                            className="form-input"
-                            value={formData.expense_date}
-                            onChange={(e) => setFormData({ ...formData, expense_date: e.target.value })}
-                            required
-                            disabled={isSubmitting}
-                        />
+                    <div className="content-card">
+                        <div className="card-header">
+                            <h2 className="card-title">Admin Costs Sheet (Excel)</h2>
+                            <button onClick={loadExcelData} className="btn btn-outline">🔄 Refresh</button>
+                        </div>
+                        {!adminCosts || adminCosts.entries?.length === 0 ? (
+                            <div style={{ padding: '2rem', textAlign: 'center' }}>No entries yet.</div>
+                        ) : (
+                            <div className="table-container" style={{ overflowX: 'auto' }}>
+                                <table className="table" style={{ whiteSpace: 'nowrap' }}>
+                                    <thead>
+                                        <tr>
+                                            <th>Description</th>
+                                            <th>Amount (RWF)</th>
+                                            <th>Unit</th>
+                                            <th># People</th>
+                                            <th>Jan-Dec Values</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {adminCosts.entries.map((entry, idx) => {
+                                            const hasMonthlyValues = entry.monthly && entry.monthly.some(v => v > 0);
+                                            const totalMonthly = hasMonthlyValues ? entry.monthly.reduce((s,v)=>s+v, 0) : null;
+                                            
+                                            return (
+                                                <tr key={idx}>
+                                                    <td><strong>{entry.description}</strong></td>
+                                                    <td>RWF {entry.amount?.toLocaleString()}</td>
+                                                    <td>{entry.unit || '-'}</td>
+                                                    <td>{entry.num_people}</td>
+                                                    <td>{hasMonthlyValues ? `Total: RWF ${totalMonthly.toLocaleString()}` : '-'}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                        <tr style={{ backgroundColor: 'var(--color-gray-100)', fontWeight: 'bold' }}>
+                                            <td colSpan="4">TOTAL ADMINISTRATIVE COSTS</td>
+                                            <td><strong>RWF {adminTotal.toLocaleString()}</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
-
-                    <div className="form-group">
-                        <label className="form-label required">Description</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label required">Amount (RWF)</label>
-                        <input
-                            type="number"
-                            className="form-input"
-                            value={formData.amount}
-                            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                            required
-                        />
-                    </div>
-
-                    <div className="actions-group" style={{ marginTop: 'var(--spacing-lg)' }}>
-                        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                            {isSubmitting ? 'Adding...' : 'Add Expense'}
-                        </button>
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-outline" disabled={isSubmitting}>
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </Modal>
+                </div>
+            )}
         </div>
     );
 };

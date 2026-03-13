@@ -29,13 +29,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       // Handle specific status codes
-          if (error.response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      if (error.response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
 
-      // Let React Router handle navigation
-      window.dispatchEvent(new Event('unauthorized'));
-    }
+        // Let React Router handle navigation
+        window.dispatchEvent(new Event('unauthorized'));
+      }
 
       return Promise.reject(error.response.data);
     }
@@ -217,6 +217,29 @@ export const auditLogsAPI = {
   getAll: (params) => api.get('/audit-logs', { params }),
   getById: (id) => api.get(`/audit-logs/${id}`),
   getStats: () => api.get('/audit-logs/stats'),
+};
+
+// Excel Finance API
+export const excelFinanceAPI = {
+  checkFile: (year) => api.get(`/excelFinance/status/${year}`),
+  createFile: (year, data) => api.post(`/excelFinance/create/${year}`, data || {}),
+  getAll: (year) => api.get(`/excelFinance/all/${year}`),
+  getIncomeStatement: (year) => api.get(`/excelFinance/income-statement/${year}`),
+  getSelling: (year) => api.get(`/excelFinance/selling/${year}`),
+  getDirectCosts: (year) => api.get(`/excelFinance/direct-costs/${year}`),
+  getStaff: (year) => api.get(`/excelFinance/staff/${year}`),
+  getAdminCosts: (year) => api.get(`/excelFinance/admin-costs/${year}`),
+  getMaintBags: (year) => api.get(`/excelFinance/maint-bags/${year}`),
+  getBalanceSheet: (year) => api.get(`/excelFinance/balance-sheet/${year}`),
+  getAmortization: (year) => api.get(`/excelFinance/amortization/${year}`),
+  getCoffeeProduced: (year) => api.get(`/excelFinance/coffee-produced/${year}`),
+  addSelling: (year, data) => api.post(`/excelFinance/selling/${year}`, data),
+  addDirectCost: (year, data) => api.post(`/excelFinance/direct-costs/${year}`, data),
+  addStaffEntry: (year, data) => api.post(`/excelFinance/staff/${year}`, data),
+  addAdminCost: (year, data) => api.post(`/excelFinance/admin-costs/${year}`, data),
+  addMaintBagsEntry: (year, data) => api.post(`/excelFinance/maint-bags/${year}`, data),
+  addBalanceSheetEntry: (year, data) => api.post(`/excelFinance/balance-sheet/${year}`, data),
+  addAmortEntry: (year, data) => api.post(`/excelFinance/amortization/${year}`, data),
 };
 
 export default api;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { excelFinanceAPI } from '../../services/api';
 
-const RevenueManagement = () => {
+const MaintBagsManagement = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [excelFileExists, setExcelFileExists] = useState(null);
@@ -12,8 +12,8 @@ const RevenueManagement = () => {
 
     const [formData, setFormData] = useState({
         item: '',
-        quantity_kg: '',
-        unit_price: '',
+        units: '',
+        unit_cost: '',
     });
 
     useEffect(() => {
@@ -33,7 +33,7 @@ const RevenueManagement = () => {
 
     const loadExcelData = async () => {
         try {
-            const res = await excelFinanceAPI.getSelling(currentYear);
+            const res = await excelFinanceAPI.getMaintBags(currentYear);
             setExcelData(res.data.data);
         } catch (err) {
             console.error('Error loading Excel data:', err);
@@ -60,28 +60,24 @@ const RevenueManagement = () => {
         setIsSubmitting(true);
 
         try {
-            const quantity = parseFloat(formData.quantity_kg);
-            const pricePerKg = parseFloat(formData.unit_price);
-
             if (!excelFileExists) {
                 throw new Error("Financial Excel file must be created first.");
             }
 
-            await excelFinanceAPI.addSelling(currentYear, {
+            await excelFinanceAPI.addMaintBagsEntry(currentYear, {
                 item: formData.item,
-                quantity_kg: quantity,
-                unit_price: pricePerKg,
+                units: parseFloat(formData.units) || 0,
+                unit_cost: parseFloat(formData.unit_cost) || 0,
             });
 
             await loadExcelData();
-
-            alert('Sale recorded successfully to Excel!');
+            alert('Maintenance/Bags entry recorded successfully!');
             setFormData({
-                item: '', quantity_kg: '', unit_price: ''
+                item: '', units: '', unit_cost: ''
             });
         } catch (err) {
-            console.error('Error recording sale:', err);
-            setError(err.message || 'Failed to record sale.');
+            console.error('Error recording entry:', err);
+            setError(err.message || 'Failed to record entry.');
         } finally {
             setIsSubmitting(false);
         }
@@ -92,15 +88,15 @@ const RevenueManagement = () => {
     return (
         <div>
             <div className="page-header">
-                <h1 className="page-title">Sales / Revenue</h1>
-                <p className="page-description">Record coffee sales directly to the Selling sheet</p>
+                <h1 className="page-title">Maintenance & Bags</h1>
+                <p className="page-description">Manage material and maintenance costs (Maint & Bags Sheet)</p>
             </div>
 
             {excelFileExists === false && (
                 <div className="alert alert-warning" style={{ marginBottom: 'var(--spacing-xl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                         <strong>⚠️ No financial statement file found for {currentYear}.</strong>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>Create the Excel file to record sales data.</p>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>Create the Excel file to record data.</p>
                     </div>
                     <button onClick={handleCreateFile} className="btn btn-primary" disabled={isCreatingFile} style={{ whiteSpace: 'nowrap', marginLeft: '1rem' }}>
                         {isCreatingFile ? 'Creating...' : `📄 Create Financial File for ${currentYear}`}
@@ -110,24 +106,24 @@ const RevenueManagement = () => {
 
             {excelFileExists === true && (
                 <div className="alert alert-success" style={{ marginBottom: 'var(--spacing-md)', fontSize: '0.9rem' }}>
-                    ✅ Excel file active for {currentYear} — sales will be saved to the Selling sheet.
+                    ✅ Excel file active for {currentYear} — records will be saved to the Maint & Bags sheet.
                 </div>
             )}
 
             <div className="stats-grid" style={{ marginBottom: 'var(--spacing-xl)' }}>
                 <div className="stat-card">
-                    <div className="stat-label">Total Sales (RWF)</div>
+                    <div className="stat-label">Total Maintenance & Bags (RWF)</div>
                     <div className="stat-value">RWF {excelTotal.toLocaleString()}</div>
                 </div>
                 <div className="stat-card">
-                    <div className="stat-label">Recorded Sales Entries</div>
+                    <div className="stat-label">Recorded Entries</div>
                     <div className="stat-value">{(excelData?.entries?.length) || 0}</div>
                 </div>
             </div>
 
             <div className="content-card" style={{ marginBottom: 'var(--spacing-xl)' }}>
                 <div className="card-header">
-                    <h2 className="card-title">Record New Sale</h2>
+                    <h2 className="card-title">Record Cost</h2>
                 </div>
 
                 {error && (
@@ -138,13 +134,13 @@ const RevenueManagement = () => {
 
                 <form onSubmit={handleSubmit} style={{ padding: 'var(--spacing-md)' }}>
                     <div className="form-group">
-                        <label className="form-label required">Item Description</label>
+                        <label className="form-label required">Item</label>
                         <input
                             type="text"
                             className="form-input"
                             value={formData.item}
                             onChange={(e) => setFormData({ ...formData, item: e.target.value })}
-                            placeholder="e.g. Grade 1 & 2 of Parchment Coffee"
+                            placeholder="e.g. Bags required per KGs sold, Factory Repairs"
                             required
                             disabled={isSubmitting || !excelFileExists}
                         />
@@ -152,12 +148,12 @@ const RevenueManagement = () => {
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--spacing-md)' }}>
                         <div className="form-group">
-                            <label className="form-label required">Qty (kg)</label>
+                            <label className="form-label required"># Units</label>
                             <input
                                 type="number"
                                 className="form-input"
-                                value={formData.quantity_kg}
-                                onChange={(e) => setFormData({ ...formData, quantity_kg: e.target.value })}
+                                value={formData.units}
+                                onChange={(e) => setFormData({ ...formData, units: e.target.value })}
                                 step="0.1"
                                 min="0"
                                 required
@@ -166,12 +162,12 @@ const RevenueManagement = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label required">U.P (Rwf) - Unit Price</label>
+                            <label className="form-label required">Unit Cost (RWF)</label>
                             <input
                                 type="number"
                                 className="form-input"
-                                value={formData.unit_price}
-                                onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
+                                value={formData.unit_cost}
+                                onChange={(e) => setFormData({ ...formData, unit_cost: e.target.value })}
                                 step="0.01"
                                 min="0"
                                 required
@@ -179,22 +175,20 @@ const RevenueManagement = () => {
                             />
                         </div>
 
-                        {formData.quantity_kg && formData.unit_price && (
-                            <div className="form-group">
-                                <label className="form-label">T.P (Rwf) - Total Price</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={`RWF ${(parseFloat(formData.quantity_kg) * parseFloat(formData.unit_price)).toLocaleString()}`}
-                                    disabled
-                                    style={{ backgroundColor: 'var(--color-gray-100)', fontWeight: 'bold', fontSize: '1.125rem' }}
-                                />
-                            </div>
-                        )}
+                        <div className="form-group">
+                            <label className="form-label">Total (RWF)</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={`RWF ${(parseFloat(formData.units || 0) * parseFloat(formData.unit_cost || 0)).toLocaleString()}`}
+                                disabled
+                                style={{ backgroundColor: 'var(--color-gray-100)', fontWeight: 'bold' }}
+                            />
+                        </div>
                     </div>
 
                     <button type="submit" className="btn btn-primary" disabled={isSubmitting || !excelFileExists}>
-                        {isSubmitting ? 'Recording...' : 'Record Sale to Excel'}
+                        {isSubmitting ? 'Recording...' : 'Record to Excel'}
                     </button>
                 </form>
             </div>
@@ -202,30 +196,30 @@ const RevenueManagement = () => {
             {excelFileExists && (
                 <div className="content-card">
                     <div className="card-header">
-                        <h2 className="card-title">Selling Sheet Entries</h2>
+                        <h2 className="card-title">Maintenance & Bags Sheet Entries</h2>
                         <button onClick={loadExcelData} className="btn btn-outline">🔄 Refresh</button>
                     </div>
 
                     {!excelData || excelData.entries?.length === 0 ? (
-                        <div style={{ padding: '2rem', textAlign: 'center' }}>No selling entries in Excel file yet.</div>
+                        <div style={{ padding: '2rem', textAlign: 'center' }}>No entries in Excel file yet.</div>
                     ) : (
                         <div className="table-container">
                             <table className="table">
                                 <thead>
                                     <tr>
                                         <th>Item</th>
-                                        <th>Qty (kg)</th>
-                                        <th>U.P (RWF)</th>
-                                        <th>T.P (RWF)</th>
+                                        <th># Units</th>
+                                        <th>Unit Cost (RWF)</th>
+                                        <th>Total (RWF)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {excelData.entries.map((entry, idx) => (
                                         <tr key={idx}>
                                             <td><strong>{entry.item}</strong></td>
-                                            <td>{entry.quantity_kg?.toLocaleString()}</td>
-                                            <td>RWF {entry.unit_price?.toLocaleString()}</td>
-                                            <td><strong>RWF {entry.total_price?.toLocaleString()}</strong></td>
+                                            <td>{entry.units?.toLocaleString()}</td>
+                                            <td>RWF {entry.unit_cost?.toLocaleString()}</td>
+                                            <td><strong>RWF {entry.total?.toLocaleString()}</strong></td>
                                         </tr>
                                     ))}
                                     <tr style={{ backgroundColor: 'var(--color-gray-100)', fontWeight: 'bold' }}>
@@ -242,4 +236,4 @@ const RevenueManagement = () => {
     );
 };
 
-export default RevenueManagement;
+export default MaintBagsManagement;

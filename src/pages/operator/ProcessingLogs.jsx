@@ -47,7 +47,7 @@ const ProcessingLogs = () => {
             setSelectedLot('');
             setStage('');
             await fetchLots();
-            
+
             // Clear success message after 5 seconds
             setTimeout(() => setSuccessMessage(null), 5000);
         } catch (err) {
@@ -75,7 +75,7 @@ const ProcessingLogs = () => {
                         {error}
                     </div>
                 )}
-                
+
                 {successMessage && (
                     <div className="alert alert-success" style={{ marginBottom: 'var(--spacing-md)' }}>
                         {successMessage}
