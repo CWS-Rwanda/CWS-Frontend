@@ -29,6 +29,9 @@ import BagManagement from './pages/operator/BagManagement';
 
 // Sustainability Pages
 import QualityChecks from './pages/sustainability/QualityChecks';
+import CuppingScores from './pages/sustainability/CuppingScores';
+import QualityDashboardPage from './pages/sustainability/QualityDashboard';
+import DryingManagementPage from './pages/sustainability/DryingManagement';
 import ComplianceChecks from './pages/sustainability/ComplianceChecks';
 import LotApproval from './pages/sustainability/LotApproval';
 
@@ -41,6 +44,8 @@ import FinancialStatements from './pages/finance/FinancialStatements';
 import KPIs from './pages/finance/KPIs';
 import LoanManagement from './pages/finance/LoanManagement';
 import FinancingSourceManagement from './pages/finance/FinancingSourceManagement';
+import MaintBagsManagement from './pages/finance/MaintBagsManagement';
+import BalanceSheetInputs from './pages/finance/BalanceSheetInputs';
 
 import './App.css';
 
@@ -115,18 +120,24 @@ const AppRoutes = () => {
 
       {/* Sustainability Routes */}
       <Route path="/sustainability" element={<ProtectedLayout allowedRole="sustainability"><QualityChecks /></ProtectedLayout>} />
+      <Route path="/sustainability/cupping" element={<ProtectedLayout allowedRole="sustainability"><CuppingScores /></ProtectedLayout>} />
+      <Route path="/sustainability/quality-dashboard" element={<ProtectedLayout allowedRole="sustainability"><QualityDashboardPage /></ProtectedLayout>} />
+      <Route path="/sustainability/drying-management" element={<ProtectedLayout allowedRole="sustainability"><DryingManagementPage /></ProtectedLayout>} />
       <Route path="/sustainability/compliance" element={<ProtectedLayout allowedRole="sustainability"><ComplianceChecks /></ProtectedLayout>} />
       <Route path="/sustainability/approval" element={<ProtectedLayout allowedRole="sustainability"><LotApproval /></ProtectedLayout>} />
 
       {/* Finance Routes */}
-      <Route path="/finance" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><ExpenseManagement /></ProtectedLayout>} />
-      <Route path="/finance/labor" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><LaborCosts /></ProtectedLayout>} />
-      <Route path="/finance/assets" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><AssetManagement /></ProtectedLayout>} />
-      <Route path="/finance/revenue" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><RevenueManagement /></ProtectedLayout>} />
+      <Route path="/finance/sales" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><RevenueManagement /></ProtectedLayout>} />
+      <Route path="/finance/costs" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><ExpenseManagement /></ProtectedLayout>} />
+      <Route path="/finance/staff" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><LaborCosts /></ProtectedLayout>} />
+      <Route path="/finance/maint-bags" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><MaintBagsManagement /></ProtectedLayout>} />
+      <Route path="/finance/amortization" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><AssetManagement /></ProtectedLayout>} />
+      <Route path="/finance/balance-sheet" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><BalanceSheetInputs /></ProtectedLayout>} />
       <Route path="/finance/statements" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><FinancialStatements /></ProtectedLayout>} />
       <Route path="/finance/kpis" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><KPIs /></ProtectedLayout>} />
       <Route path="/finance/financing-sources" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><FinancingSourceManagement /></ProtectedLayout>} />
       <Route path="/finance/loans" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><LoanManagement /></ProtectedLayout>} />
+      <Route path="/finance" element={<Navigate to="/finance/sales" replace />} />
 
       {/* Default redirect */}
       <Route path="*" element={<Navigate to={`/${user?.role === 'FINANCE' ? 'finance' : user?.role?.toLowerCase()}`} replace />} />
