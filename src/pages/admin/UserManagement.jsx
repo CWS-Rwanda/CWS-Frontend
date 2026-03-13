@@ -41,17 +41,17 @@ const UserManagement = () => {
         try {
             const response = await adminUsersAPI.getAll();
             console.log('Users API response:', response);
-            
+
             // Handle different response structures
             const usersData = response?.data?.data || response?.data || [];
-            
+
             if (!Array.isArray(usersData)) {
                 console.error('Users data is not an array:', usersData);
                 setError('Invalid users data format');
                 setUsers([]);
                 return;
             }
-            
+
             setUsers(usersData);
         } catch (err) {
             console.error('Error fetching users:', err);
@@ -67,17 +67,17 @@ const UserManagement = () => {
         try {
             const response = await farmersAPI.getAll();
             console.log('Farmers API response:', response);
-            
+
             // Handle different response structures
             const farmersData = response?.data?.data || response?.data || [];
-            
+
             if (!Array.isArray(farmersData)) {
                 console.error('Farmers data is not an array:', farmersData);
                 setError('Invalid farmers data format');
                 setFarmers([]);
                 return;
             }
-            
+
             setFarmers(farmersData);
         } catch (err) {
             console.error('Error fetching farmers:', err);
@@ -90,9 +90,9 @@ const UserManagement = () => {
     // Filter users
     const displayUsers = useMemo(() => {
         let filtered = [...users];
-        
+
         console.log('Filtering users:', { totalUsers: users.length, filterRole, users });
-        
+
         if (filterRole !== 'all') {
             filtered = filtered.filter(u => {
                 const matches = u.role === filterRole;
@@ -100,7 +100,7 @@ const UserManagement = () => {
                 return matches;
             });
         }
-        
+
         console.log('Filtered users:', filtered.length);
         return filtered;
     }, [users, filterRole]);
@@ -312,14 +312,14 @@ const UserManagement = () => {
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <button 
+                                                <button
                                                     className="btn-update"
                                                     onClick={() => handleUpdateClick(user)}
                                                     disabled={isSubmitting}
                                                 >
                                                     Update
                                                 </button>
-                                                <button 
+                                                <button
                                                     className="btn btn-outline"
                                                     onClick={() => handleDeleteClick(user)}
                                                     disabled={isSubmitting}
