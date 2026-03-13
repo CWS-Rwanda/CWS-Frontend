@@ -15,17 +15,17 @@ const AdminDashboard = () => {
         if (!loading.lots && lots.length === 0) {
             fetchLots();
         }
-        
+
         // Fetch revenue if not already loaded
         if (!loading.revenue && revenue.length === 0) {
             fetchRevenues();
         }
-        
+
         // Fetch expenses if not already loaded
         if (!loading.expenses && expenses.length === 0) {
             fetchExpenses();
         }
-        
+
         // Fetch labor costs if not already loaded
         if (!loading.laborLogs && laborCosts.length === 0) {
             fetchLaborLogs();
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
             const date = new Date(today);
             date.setDate(date.getDate() - i);
             const dateStr = date.toISOString().split('T')[0];
-            
+
             // Get revenue for this date
             const dayRevenue = revenue
                 .filter(r => (r.sale_date || r.date) === dateStr)
@@ -96,7 +96,7 @@ const AdminDashboard = () => {
                     const amount = parseFloat(r.total_amount) || parseFloat(r.totalRevenue) || parseFloat(r.amount) || 0;
                     return sum + amount;
                 }, 0);
-            
+
             last10Days.push({
                 date: dateStr,
                 revenue: dayRevenue || Math.floor(Math.random() * 200000) + 50000,
@@ -115,7 +115,7 @@ const AdminDashboard = () => {
                     <div className="kpi-content">
                         <div className="kpi-label">Revenue</div>
                         <div className="kpi-value">{totalRevenue.toLocaleString()} RWF</div>
-            </div>
+                    </div>
                 </div>
 
                 <div className="kpi-card profit-card">
@@ -127,7 +127,7 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 </div>
-                </div>
+            </div>
 
             <div className="dashboard-charts">
                 <div className="chart-card">
@@ -141,22 +141,22 @@ const AdminDashboard = () => {
                                     const color = colors[index % colors.length];
                                     const angle = (item.percentage / 100) * 360;
                                     const largeArc = angle > 180 ? 1 : 0;
-                                    
+
                                     const x1 = 100 + 80 * Math.cos((currentAngle * Math.PI) / 180);
                                     const y1 = 100 + 80 * Math.sin((currentAngle * Math.PI) / 180);
                                     const x2 = 100 + 80 * Math.cos(((currentAngle + angle) * Math.PI) / 180);
                                     const y2 = 100 + 80 * Math.sin(((currentAngle + angle) * Math.PI) / 180);
-                                    
+
                                     const pathData = [
                                         `M 100 100`,
                                         `L ${x1} ${y1}`,
                                         `A 80 80 0 ${largeArc} 1 ${x2} ${y2}`,
                                         `Z`,
                                     ].join(' ');
-                                    
+
                                     const segmentAngle = currentAngle + angle / 2;
                                     currentAngle += angle;
-                                    
+
                                     return (
                                         <g key={item.type}>
                                             <path
@@ -249,7 +249,7 @@ const AdminDashboard = () => {
                                     <stop offset="100%" stopColor="#9B59B6" stopOpacity="0" />
                                 </linearGradient>
                             </defs>
-                            
+
                             {/* Y-axis labels */}
                             {[0, 50, 100, 150, 200].map((val) => (
                                 <text
@@ -262,7 +262,7 @@ const AdminDashboard = () => {
                                     {val}
                                 </text>
                             ))}
-                            
+
                             {/* X-axis labels */}
                             {salesData.map((item, index) => (
                                 <text
@@ -276,7 +276,7 @@ const AdminDashboard = () => {
                                     {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                 </text>
                             ))}
-                            
+
                             {/* Generate 3 lines with different trends */}
                             {[
                                 { color: '#FF6B6B', gradient: 'lineGradient1', offset: 0 },
@@ -289,13 +289,13 @@ const AdminDashboard = () => {
                                     const y = baseY + (lineIndex * 20) - (line.offset * 40) + Math.sin(index) * 10;
                                     return { x, y, revenue: item.revenue, date: item.date };
                                 });
-                                
+
                                 const pathData = points
                                     .map((point, i) => `${i === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
                                     .join(' ');
-                                
+
                                 const areaPath = `${pathData} L ${points[points.length - 1].x} 190 L ${points[0].x} 190 Z`;
-                                
+
                                 return (
                                     <g key={lineIndex}>
                                         <path
@@ -408,39 +408,39 @@ const AdminDashboard = () => {
                                 </tr>
                             ) : (
                                 lots.slice(0, 5).map((lot) => {
-                                const getStatusColor = (status) => {
-                                    if (status === 'Complete' || status === 'complete') return 'status-complete';
-                                    if (status === 'Progress' || status === 'progress') return 'status-progress';
-                                    return 'status-created';
-                                };
-                                
-                                const getProcessColor = (type) => {
-                                    if (type === 'Washed') return 'process-washed';
-                                    if (type === 'Honey') return 'process-honey';
-                                    return 'process-natural';
-                                };
-                                
-                                return (
-                                <tr key={lot.id}>
-                                    <td><strong>{lot.lotName || lot.id}</strong></td>
-                                    <td>{lot.createdDate}</td>
-                                    <td>
-                                            <span className={`badge ${getProcessColor(lot.processingMethod)}`}>
-                                                {lot.processingMethod}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span className="badge badge-grade">Grade {lot.grade}</span>
-                                    </td>
-                                    <td>
-                                            <span className={`badge ${getStatusColor(lot.status)}`}>
-                                            {lot.status}
-                                        </span>
-                                    </td>
-                                    <td>{lot.totalWeight}</td>
-                                    <td>{lot.qualityScore}%</td>
-                                </tr>
-                                );
+                                    const getStatusColor = (status) => {
+                                        if (status === 'Complete' || status === 'complete') return 'status-complete';
+                                        if (status === 'Progress' || status === 'progress') return 'status-progress';
+                                        return 'status-created';
+                                    };
+
+                                    const getProcessColor = (type) => {
+                                        if (type === 'Washed') return 'process-washed';
+                                        if (type === 'Honey') return 'process-honey';
+                                        return 'process-natural';
+                                    };
+
+                                    return (
+                                        <tr key={lot.id}>
+                                            <td><strong>{lot.lotName || lot.id}</strong></td>
+                                            <td>{lot.createdDate}</td>
+                                            <td>
+                                                <span className={`badge ${getProcessColor(lot.processingMethod)}`}>
+                                                    {lot.processingMethod}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className="badge badge-grade">Grade {lot.grade}</span>
+                                            </td>
+                                            <td>
+                                                <span className={`badge ${getStatusColor(lot.status)}`}>
+                                                    {lot.status}
+                                                </span>
+                                            </td>
+                                            <td>{lot.totalWeight}</td>
+                                            <td>{lot.qualityScore}%</td>
+                                        </tr>
+                                    );
                                 })
                             )}
                         </tbody>
