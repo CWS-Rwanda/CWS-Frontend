@@ -17,16 +17,16 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const loadUser = async () => {
       try {
         const token = localStorage.getItem('token');
-        
+
         if (!token) {
           setIsLoading(false);
           return;
         }
-        
+
         // Only try to get fresh user data if we have a token
         const response = await authAPI.getProfile();
         if (isMounted) {
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     loadUser();
-    
+
     return () => {
       isMounted = false;
     };
@@ -58,18 +58,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login({ email, password });
       const { token, user } = response.data.data;
-      
+
       // Store token and user data
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      
+
       setUser(user);
       return { response };
     } catch (error) {
       console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Invalid email or password' 
+      return {
+        success: false,
+        error: error.message || 'Invalid email or password'
       };
     }
   };
