@@ -28,7 +28,7 @@ const AddLotForm = ({ isOpen, onClose, onSuccess }) => {
         }));
     };
 
-    
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -41,7 +41,7 @@ const AddLotForm = ({ isOpen, onClose, onSuccess }) => {
                 ...formData,
                 season_id: formData.season_id,
             };
-            console.log("Data to send: ",dataToSend);
+            console.log("Data to send: ", dataToSend);
             await lotsAPI.create(dataToSend);
             await fetchLots();
             onSuccess('Lot created successfully!');
@@ -60,7 +60,7 @@ const AddLotForm = ({ isOpen, onClose, onSuccess }) => {
         <Modal isOpen={isOpen} onClose={onClose} title="Create New Lot">
             <form onSubmit={handleSubmit} className="add-lot-form">
                 {error && <div className="alert alert-danger">{error}</div>}
-                
+
                 <div className="form-group">
                     <label>Lot Name *</label>
                     <input
