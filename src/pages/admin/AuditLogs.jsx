@@ -33,7 +33,7 @@ const AuditLogs = () => {
         if (filterUser !== 'All') params.user = filterUser;
         if (filterAction !== 'All') params.action = filterAction;
         if (filterEntity !== 'All') params.table_name = filterEntity;
-        
+
         setLocalLoading(true);
         fetchAuditLogs(params).finally(() => setLocalLoading(false));
     };
@@ -94,15 +94,15 @@ const AuditLogs = () => {
                 </div>
 
                 <div className="filter-item">
-                    <button 
-                        className="btn btn-primary" 
+                    <button
+                        className="btn btn-primary"
                         onClick={handleFilterChange}
                         disabled={localLoading || loading.auditLogs}
                     >
                         {localLoading || loading.auditLogs ? 'Filtering...' : 'Apply Filters'}
                     </button>
-                    <button 
-                        className="btn btn-secondary" 
+                    <button
+                        className="btn btn-secondary"
                         onClick={handleRefresh}
                         disabled={localLoading || loading.auditLogs}
                         style={{ marginLeft: '8px' }}
