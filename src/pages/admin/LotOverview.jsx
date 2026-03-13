@@ -7,10 +7,10 @@ import { toast } from 'react-toastify';
 
 const LotOverview = () => {
     const { lots, loading } = useData();
-    
+
     useEffect(() => {
         console.log(lots);
-    },[lots])
+    }, [lots])
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const handleAddLotSuccess = (message) => {
@@ -19,22 +19,22 @@ const LotOverview = () => {
 
     // Calculate real data from lots
     const totalLots = lots.length;
-    
+
     // Calculate lot status distribution
     const statusCounts = lots.reduce((acc, lot) => {
         const status = lot.status || 'CREATED';
         acc[status] = (acc[status] || 0) + 1;
         return acc;
     }, {});
-    
+
     const totalForChart = Math.max(Object.values(statusCounts).reduce((sum, val) => sum + val, 0), 1);
-    
+
     const lotStatusData = Object.entries(statusCounts).map(([label, value]) => ({
         label,
         value,
         width: `${(value / totalForChart) * 100}%`
     }));
-    
+
     // Calculate average quality score from compliance logs (if available)
     const avgQualityScore = "N/A"; // Would need compliance logs API to calculate
 
@@ -43,12 +43,12 @@ const LotOverview = () => {
 
     return (
         <div className="lot-overview">
-          <div className="page-header">
+            <div className="page-header">
                 <div>
                     <h1 className="page-title">Coffee Lots</h1>
                     <p className="page-description">Manage coffee processing lots</p>
                 </div>
-                <button 
+                <button
                     className="btn btn-primary"
                     onClick={() => setIsAddModalOpen(true)}
                 >
@@ -145,7 +145,7 @@ const LotOverview = () => {
                     </table>
                 </div>
             </div>
-                <AddLotForm 
+            <AddLotForm
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onSuccess={handleAddLotSuccess}
