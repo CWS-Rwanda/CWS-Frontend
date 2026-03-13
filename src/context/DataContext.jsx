@@ -39,7 +39,7 @@ export const DataProvider = ({ children }) => {
     const [qualityChecks, setQualityChecks] = useState([]);
     const [sustainabilityChecks, setSustainabilityChecks] = useState([]);
     const [auditLogs, setAuditLogs] = useState([]);
-    
+
     // Loading states
     const [loading, setLoading] = useState({
         farmers: false,
