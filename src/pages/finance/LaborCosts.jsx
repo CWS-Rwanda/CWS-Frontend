@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { excelFinanceAPI } from '../../services/api';
+import { useData } from '../../context/DataContext';
 
 const LaborCosts = () => {
     const { fetchExcelFinanceData } = useData();
