@@ -45,7 +45,6 @@ const Sidebar = () => {
                 { path: '/finance/maint-bags', label: 'Maintenance & Bags', icon: 'lot' },
                 { path: '/finance/amortization', label: 'Asset Amortization', icon: 'lot' },
                 { path: '/finance/balance-sheet', label: 'Balance Sheet Inputs', icon: 'grid' },
-                { path: '/finance/statements', label: 'Finance Statements', icon: 'report' },
                 { path: '/finance/reports', label: 'Financial Reports', icon: 'analytics' },
                 { path: '/finance/kpis', label: 'KPIs & Alerts', icon: 'calendar' },
                 { path: '/finance/financing-sources', label: 'Financing Sources', icon: 'pricing' },
