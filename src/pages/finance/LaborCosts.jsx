@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { excelFinanceAPI } from '../../services/api';
 
 const LaborCosts = () => {
+    const { fetchExcelFinanceData } = useData();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [excelFileExists, setExcelFileExists] = useState(null);
@@ -72,6 +73,7 @@ const LaborCosts = () => {
                 num_months: parseFloat(formData.num_months) || 0,
             });
 
+            await fetchExcelFinanceData(currentYear);
             await loadExcelData();
             alert('Staff entry recorded successfully!');
             setFormData({

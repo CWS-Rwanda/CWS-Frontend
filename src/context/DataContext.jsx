@@ -39,6 +39,7 @@ export const DataProvider = ({ children }) => {
     const [qualityChecks, setQualityChecks] = useState([]);
     const [sustainabilityChecks, setSustainabilityChecks] = useState([]);
     const [auditLogs, setAuditLogs] = useState([]);
+    const [excelFinanceData, setExcelFinanceData] = useState(null);
 
     // Loading states
     const [loading, setLoading] = useState({
@@ -96,9 +97,10 @@ export const DataProvider = ({ children }) => {
         processingMethod: lot.process_type,
         grade: lot.grade || '',
         status: lot.status?.toLowerCase().replace('_', ' ') || 'created',
+        weight: parseFloat(lot.display_weight ?? lot.weight_kg) || 0,
         seasonId: lot.season_id,
         createdDate: lot.created_at?.split('T')[0] || '',
-        totalWeight: 0, // Will be calculated from deliveries
+        totalWeight: parseFloat(lot.display_weight ?? lot.weight_kg) || 0,
         timeline: [], // Will be populated from processing logs
     });
 
@@ -236,6 +238,19 @@ export const DataProvider = ({ children }) => {
         }
     };
 
+    const fetchExcelFinanceData = async (year = new Date().getFullYear()) => {
+        try {
+            setLoading(prev => ({ ...prev, excelFinance: true }));
+            const response = await excelFinanceAPI.getIncomeStatement(year);
+            setExcelFinanceData(response.data.data || null);
+        } catch (error) {
+            console.warn('Excel financial data not found or error fetching:', error);
+            setExcelFinanceData(null);
+        } finally {
+            setLoading(prev => ({ ...prev, excelFinance: false }));
+        }
+    };
+
     // Initial data fetch
     useEffect(() => {
         fetchFarmers();
@@ -247,6 +262,7 @@ export const DataProvider = ({ children }) => {
         fetchAssets();
         fetchStorageBags();
         fetchLaborLogs();
+        fetchExcelFinanceData();
     }, []);
 
     const value = {
@@ -264,6 +280,7 @@ export const DataProvider = ({ children }) => {
         qualityChecks,
         sustainabilityChecks,
         auditLogs,
+        excelFinanceData,
         // Setters (for optimistic updates)
         setFarmers,
         setDeliveries,
@@ -278,6 +295,7 @@ export const DataProvider = ({ children }) => {
         setQualityChecks,
         setSustainabilityChecks,
         setAuditLogs,
+        setExcelFinanceData,
         // Fetch functions (for refresh)
         fetchFarmers,
         fetchDeliveries,
@@ -289,6 +307,7 @@ export const DataProvider = ({ children }) => {
         fetchStorageBags,
         fetchLaborLogs,
         fetchAuditLogs,
+        fetchExcelFinanceData,
         // Loading states
         loading,
     };

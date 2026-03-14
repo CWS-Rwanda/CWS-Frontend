@@ -95,7 +95,7 @@ const ProcessingLogs = () => {
                             <option value="">-- Select Lot --</option>
                             {lots.filter(l => l.status !== 'COMPLETED' && l.status !== 'completed').map(lot => (
                                 <option key={lot.id} value={lot.id}>
-                                    {lot.lotName || lot.id} - Current: {lot.status}
+                                    {lot.lotName || lot.id} - {lot.weight}kg - Current: {lot.status}
                                 </option>
                             ))}
                         </select>

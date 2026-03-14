@@ -172,7 +172,7 @@ const BagManagement = () => {
                             {lots && lots.length > 0 ? (
                                 lots.map(lot => (
                                     <option key={lot.id} value={lot.id}>
-                                        {lot.lotName || lot.id} - {lot.processingMethod || 'N/A'} ({lot.status || 'N/A'})
+                                        {lot.lotName || lot.id} - {lot.weight}kg - {lot.processingMethod || 'N/A'} ({lot.status || 'N/A'})
                                     </option>
                                 ))
                             ) : (

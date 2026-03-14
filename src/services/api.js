@@ -66,6 +66,9 @@ export const lotsAPI = {
   getById: (id) => api.get(`/lots/${id}`),
   create: (data) => api.post('/lots', data),
   update: (id, data) => api.put(`/lots/${id}`, data),
+  split: (id, data) => api.post(`/lots/${id}/split`, data),
+  merge: (data) => api.post('/lots/merge', data),
+  getHistory: (id) => api.get(`/lots/${id}/history`),
 };
 
 // Deliveries API

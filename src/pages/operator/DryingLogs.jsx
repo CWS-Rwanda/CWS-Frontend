@@ -69,7 +69,7 @@ const DryingLogs = () => {
                         <option value="">All lots</option>
                         {lots.map((lot) => (
                             <option key={lot.id} value={lot.id}>
-                                {lot.lotName || lot.id} • {lot.processingMethod}
+                                {lot.lotName || lot.id} - {lot.weight}kg • {lot.processingMethod}
                             </option>
                         ))}
                     </select>

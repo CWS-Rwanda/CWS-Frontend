@@ -3,11 +3,23 @@ import { useData } from '../../context/DataContext';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-    const { deliveries, lots, revenue, expenses, laborCosts, loading, fetchLots, fetchRevenues, fetchExpenses, fetchLaborLogs } = useData();
     const [hoveredPoint, setHoveredPoint] = useState(null);
     const [hoveredPie, setHoveredPie] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
     const [pieTooltipPosition, setPieTooltipPosition] = useState({ x: 0, y: 0 });
+    const {
+        lots,
+        revenue,
+        expenses,
+        laborCosts,
+        loading,
+        fetchLots,
+        fetchRevenues,
+        fetchExpenses,
+        fetchLaborLogs,
+        excelFinanceData,
+        fetchExcelFinanceData
+    } = useData();
 
     // Fetch all necessary data when component mounts
     useEffect(() => {
@@ -30,39 +42,57 @@ const AdminDashboard = () => {
         if (!loading.laborLogs && laborCosts.length === 0) {
             fetchLaborLogs();
         }
-    }, [loading.lots, lots.length, loading.revenue, revenue.length, loading.expenses, expenses.length, loading.laborLogs, laborCosts.length]);
+
+        // Fetch excel data if not already loaded
+        if (!loading.excelFinance && !excelFinanceData) {
+            fetchExcelFinanceData();
+        }
+    }, [
+        loading.lots, lots.length, loading.revenue, revenue.length,
+        loading.expenses, expenses.length, loading.laborLogs, laborCosts.length,
+        loading.excelFinance, excelFinanceData
+    ]);
+
+    const excelData = excelFinanceData;
 
     // Calculate KPIs
     const totalRevenue = useMemo(() => {
+        if (excelData) return excelData.totalSales;
         if (!revenue || revenue.length === 0) return 0;
         return revenue.reduce((sum, r) => {
             const amount = parseFloat(r.totalRevenue) || parseFloat(r.total_amount) || parseFloat(r.amount) || 0;
             return sum + amount;
         }, 0);
-    }, [revenue]);
+    }, [revenue, excelData]);
 
     const totalExpenses = useMemo(() => {
+        if (excelData) return excelData.administrativeCosts;
         if (!expenses || expenses.length === 0) return 0;
         return expenses.reduce((sum, e) => {
             const amount = parseFloat(e.amount) || parseFloat(e.total_amount) || 0;
             return sum + amount;
         }, 0);
-    }, [expenses]);
+    }, [expenses, excelData]);
 
     const totalLabor = useMemo(() => {
+        if (excelData) {
+            const labor = excelData.directCosts?.find(c => c.description === 'Labour at CWS')?.amount || 0;
+            return labor;
+        }
         if (!laborCosts || laborCosts.length === 0) return 0;
         return laborCosts.reduce((sum, l) => {
             const cost = parseFloat(l.totalCost) || parseFloat(l.total_cost) || parseFloat(l.amount) || 0;
             return sum + cost;
         }, 0);
-    }, [laborCosts]);
+    }, [laborCosts, excelData]);
 
     const profitLoss = useMemo(() => {
-        const revenue = isNaN(totalRevenue) ? 0 : totalRevenue;
-        const expenses = isNaN(totalExpenses) ? 0 : totalExpenses;
-        const labor = isNaN(totalLabor) ? 0 : totalLabor;
-        return revenue - expenses - labor;
-    }, [totalRevenue, totalExpenses, totalLabor]);
+        if (excelData) return excelData.profitAfterTaxes;
+        const revenueValue = isNaN(totalRevenue) ? 0 : totalRevenue;
+        const expensesValue = isNaN(totalExpenses) ? 0 : totalExpenses;
+        const laborValue = isNaN(totalLabor) ? 0 : totalLabor;
+        return revenueValue - expensesValue - laborValue;
+    }, [totalRevenue, totalExpenses, totalLabor, excelData]);
 
     // Delivery pie chart data
     const deliveryData = useMemo(() => {

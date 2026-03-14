@@ -101,7 +101,7 @@ const DryingMonitor = () => {
                             <option value="">-- Select Lot --</option>
                             {lots.map((lot) => (
                                 <option key={lot.id} value={lot.id}>
-                                    {lot.lotName || lot.id} • {lot.processingMethod} • Grade {lot.grade || 'N/A'}
+                                    {lot.lotName || lot.id} - {lot.weight}kg • {lot.processingMethod} • Grade {lot.grade || 'N/A'}
                                 </option>
                             ))}
                         </select>

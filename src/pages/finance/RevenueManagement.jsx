@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { excelFinanceAPI } from '../../services/api';
+import { excelFinanceAPI, storageAPI } from '../../services/api';
+import { useData } from '../../context/DataContext';
 
 const RevenueManagement = () => {
+    const { lots, bags, fetchStorageBags, fetchLots, fetchExcelFinanceData } = useData();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [excelFileExists, setExcelFileExists] = useState(null);
@@ -11,14 +13,26 @@ const RevenueManagement = () => {
     const currentYear = new Date().getFullYear();
 
     const [formData, setFormData] = useState({
-        item: '',
-        quantity_kg: '',
+        bag_id: '',
         unit_price: '',
     });
 
+    const [selectedBag, setSelectedBag] = useState(null);
+
     useEffect(() => {
         checkExcelFile();
+        fetchStorageBags();
+        fetchLots();
     }, []);
+
+    useEffect(() => {
+        if (formData.bag_id) {
+            const bag = bags.find(b => b.id === formData.bag_id);
+            setSelectedBag(bag);
+        } else {
+            setSelectedBag(null);
+        }
+    }, [formData.bag_id, bags]);
 
     const checkExcelFile = async () => {
         try {
@@ -60,24 +74,34 @@ const RevenueManagement = () => {
         setIsSubmitting(true);
 
         try {
-            const quantity = parseFloat(formData.quantity_kg);
+            if (!selectedBag) throw new Error("Please select a bag.");
+            
+            const quantity = parseFloat(selectedBag.weight_kg);
             const pricePerKg = parseFloat(formData.unit_price);
+            const totalPrice = quantity * pricePerKg;
 
             if (!excelFileExists) {
                 throw new Error("Financial Excel file must be created first.");
             }
 
+            // 1. Record to Excel
+            const lotName = lots.find(l => l.id === selectedBag.lot_id)?.lotName || 'Unknown Lot';
             await excelFinanceAPI.addSelling(currentYear, {
-                item: formData.item,
+                item: `Bag: ${selectedBag.bag_code || selectedBag.id} (Lot: ${lotName})`,
                 quantity_kg: quantity,
                 unit_price: pricePerKg,
             });
 
-            await loadExcelData();
+            // 2. Mark bag as dispatched/sold
+            await storageAPI.update(selectedBag.id, { dispatched: true });
 
-            alert('Sale recorded successfully to Excel!');
+            // 3. Refresh data
+            await fetchExcelFinanceData(currentYear);
+            await fetchStorageBags();
+
+            alert('Sale recorded successfully to Excel and bag marked as dispatched!');
             setFormData({
-                item: '', quantity_kg: '', unit_price: ''
+                bag_id: '', unit_price: ''
             });
         } catch (err) {
             console.error('Error recording sale:', err);
@@ -88,12 +112,13 @@ const RevenueManagement = () => {
     };
 
     const excelTotal = excelData?.total || 0;
+    const availableBags = bags.filter(b => !b.dispatched);
 
     return (
         <div>
             <div className="page-header">
                 <h1 className="page-title">Sales / Revenue</h1>
-                <p className="page-description">Record coffee sales directly to the Selling sheet</p>
+                <p className="page-description">Record coffee sales based on available bags</p>
             </div>
 
             {excelFileExists === false && (
@@ -138,35 +163,29 @@ const RevenueManagement = () => {
 
                 <form onSubmit={handleSubmit} style={{ padding: 'var(--spacing-md)' }}>
                     <div className="form-group">
-                        <label className="form-label required">Item Description</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={formData.item}
-                            onChange={(e) => setFormData({ ...formData, item: e.target.value })}
-                            placeholder="e.g. Grade 1 & 2 of Parchment Coffee"
+                        <label className="form-label required">Select Available Bag</label>
+                        <select
+                            className="form-select"
+                            value={formData.bag_id}
+                            onChange={(e) => setFormData({ ...formData, bag_id: e.target.value })}
                             required
                             disabled={isSubmitting || !excelFileExists}
-                        />
+                        >
+                            <option value="">-- Select Bag --</option>
+                            {availableBags.map(bag => {
+                                const lot = lots.find(l => l.id === bag.lot_id);
+                                return (
+                                    <option key={bag.id} value={bag.id}>
+                                        {bag.bag_code || bag.id} - {bag.weight_kg}kg (Lot: {lot?.lotName || 'N/A'})
+                                    </option>
+                                );
+                            })}
+                        </select>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--spacing-md)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
                         <div className="form-group">
-                            <label className="form-label required">Qty (kg)</label>
-                            <input
-                                type="number"
-                                className="form-input"
-                                value={formData.quantity_kg}
-                                onChange={(e) => setFormData({ ...formData, quantity_kg: e.target.value })}
-                                step="0.1"
-                                min="0"
-                                required
-                                disabled={isSubmitting || !excelFileExists}
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label required">U.P (Rwf) - Unit Price</label>
+                            <label className="form-label required">Unit Price (RWF/kg)</label>
                             <input
                                 type="number"
                                 className="form-input"
@@ -174,18 +193,19 @@ const RevenueManagement = () => {
                                 onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
                                 step="0.01"
                                 min="0"
+                                placeholder="e.g. 5000"
                                 required
                                 disabled={isSubmitting || !excelFileExists}
                             />
                         </div>
 
-                        {formData.quantity_kg && formData.unit_price && (
+                        {selectedBag && formData.unit_price && (
                             <div className="form-group">
-                                <label className="form-label">T.P (Rwf) - Total Price</label>
+                                <label className="form-label">Total Sale Price (RWF)</label>
                                 <input
                                     type="text"
                                     className="form-input"
-                                    value={`RWF ${(parseFloat(formData.quantity_kg) * parseFloat(formData.unit_price)).toLocaleString()}`}
+                                    value={`RWF ${(parseFloat(selectedBag.weight_kg) * parseFloat(formData.unit_price)).toLocaleString()}`}
                                     disabled
                                     style={{ backgroundColor: 'var(--color-gray-100)', fontWeight: 'bold', fontSize: '1.125rem' }}
                                 />
@@ -193,7 +213,7 @@ const RevenueManagement = () => {
                         )}
                     </div>
 
-                    <button type="submit" className="btn btn-primary" disabled={isSubmitting || !excelFileExists}>
+                    <button type="submit" className="btn btn-primary" disabled={isSubmitting || !excelFileExists || !formData.bag_id}>
                         {isSubmitting ? 'Recording...' : 'Record Sale to Excel'}
                     </button>
                 </form>

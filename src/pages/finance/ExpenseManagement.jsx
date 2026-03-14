@@ -94,6 +94,7 @@ const ExpenseManagement = () => {
                 comment: directFormData.comment,
             });
 
+            await fetchExcelFinanceData(currentYear);
             await loadExcelData();
             alert('Direct Cost recorded successfully!');
             setDirectFormData({ description: '', quantity: '', amount: '', comment: '' });
