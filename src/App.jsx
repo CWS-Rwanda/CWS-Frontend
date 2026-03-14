@@ -134,6 +134,7 @@ const AppRoutes = () => {
       <Route path="/finance/amortization" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><AssetManagement /></ProtectedLayout>} />
       <Route path="/finance/balance-sheet" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><BalanceSheetInputs /></ProtectedLayout>} />
       <Route path="/finance/statements" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><FinancialStatements /></ProtectedLayout>} />
+      <Route path="/finance/reports" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><FinancialStatements /></ProtectedLayout>} />
       <Route path="/finance/kpis" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><KPIs /></ProtectedLayout>} />
       <Route path="/finance/financing-sources" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><FinancingSourceManagement /></ProtectedLayout>} />
       <Route path="/finance/loans" element={<ProtectedLayout allowedRole={["finance", "FINANCE"]}><LoanManagement /></ProtectedLayout>} />
